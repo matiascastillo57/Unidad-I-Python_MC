@@ -1,0 +1,179 @@
+{% extends 'monitoring/base.html' %}
+
+{% block title %}{{ device.name }} - EcoEnergy{% endblock %}
+
+{% block content %}
+<div class="py-4">
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'dashboard' %}">Dashboard</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'device_list' %}">Dispositivos</a></li>
+            <li class="breadcrumb-item active">{{ device.name }}</li>
+        </ol>
+    </nav>
+
+    <!-- Información del Dispositivo -->
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h4 class="mb-0">{{ device.name }}</h4>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p><strong>Categoría:</strong> 
+                                <span class="badge bg-info">{{ device.category.name }}</span>
+                            </p>
+                            <p><strong>Zona:</strong> {{ device.zone.name }}</p>
+                            <p><strong>Consumo Máximo:</strong> 
+                                <span class="badge bg-warning text-dark">{{ device.max_consumption }} kW</span>
+                            </p>
+                        </div>
+                        <div class="col-md-6">
+                            <p><strong>Estado:</strong>
+                                {% if device.state == 'ACTIVE' %}
+                                    <span class="badge bg-success">Activo</span>
+                                {% else %}
+                                    <span class="badge bg-secondary">Inactivo</span>
+                                {% endif %}
+                            </p>
+                            <p><strong>Creado:</strong> {{ device.created_at|date:"d/m/Y H:i" }}</p>
+                            <p><strong>Última Actualización:</strong> {{ device.updated_at|date:"d/m/Y H:i" }}</p>
+                        </div>
+                    </div>
+                    {% if device.description %}
+                        <div class="mt-3">
+                            <strong>Descripción:</strong>
+                            <p class="text-muted">{{ device.description }}</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="card bg-primary text-white">
+                <div class="card-body text-center">
+                    <h5>Estado del Dispositivo</h5>
+                    <div class="mt-3">
+                        {% if device.state == 'ACTIVE' %}
+                            <h4 class="mt-2">Operativo</h4>
+                        {% else %}
+                            <h4 class="mt-2">Fuera de Servicio</h4>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Mediciones del Dispositivo -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Mediciones Recientes</h5>
+                </div>
+                <div class="card-body">
+                    {% if measurements %}
+                        <div class="table-responsive">
+                            <table class="table table-striped">
+                                <thead class="table-dark">
+                                    <tr>
+                                        <th>Fecha/Hora</th>
+                                        <th>Consumo (kW)</th>
+                                        <th>Estado</th>
+                                        <th>Notas</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for measurement in measurements %}
+                                    <tr>
+                                        <td>{{ measurement.measurement_date|date:"d/m/Y H:i:s" }}</td>
+                                        <td>
+                                            {% if measurement.consumption_value > device.max_consumption %}
+                                                <span class="badge bg-danger">
+                                                    {{ measurement.consumption_value }} kW (EXCEDE)
+                                                </span>
+                                            {% else %}
+                                                <span class="badge bg-success">
+                                                    {{ measurement.consumption_value }} kW (NORMAL)
+                                                </span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% if measurement.state == 'ACTIVE' %}
+                                                <span class="badge bg-success">Válida</span>
+                                            {% else %}
+                                                <span class="badge bg-secondary">Inactiva</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% if measurement.notes %}
+                                                {{ measurement.notes|truncatechars:30 }}
+                                            {% else %}
+                                                <span class="text-muted">Sin notas</span>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="text-center py-4">
+                            <h5 class="text-muted mt-3">No hay mediciones disponibles</h5>
+                            <p class="text-muted">
+                                Las mediciones aparecerán aquí cuando se registren para este dispositivo.
+                            </p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Alertas del Dispositivo -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Alertas Recientes</h5>
+                </div>
+                <div class="card-body">
+                    {% if alerts %}
+                        {% for alert in alerts %}
+                            <div class="alert alert-warning">
+                                <h6>{{ alert.severity|title }} - {{ alert.created_at|date:"d/m/Y H:i" }}</h6>
+                                <p>{{ alert.message }}</p>
+                                <small>
+                                    {% if alert.is_resolved %}
+                                        Resuelta
+                                    {% else %}
+                                        Pendiente
+                                    {% endif %}
+                                </small>
+                            </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="text-center py-4">
+                            <h5 class="text-muted mt-3">No hay alertas recientes</h5>
+                            <p class="text-muted">Este dispositivo no ha generado alertas recientemente.</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Botón de regreso -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <a href="{% url 'device_list' %}" class="btn btn-secondary">
+                Volver a la Lista de Dispositivos
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

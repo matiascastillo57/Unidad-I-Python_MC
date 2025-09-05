@@ -1,0 +1,212 @@
+{% extends 'monitoring/base.html' %}
+
+{% block title %}Registro - EcoEnergy{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center py-5">
+        <div class="col-md-8 col-lg-6">
+            <div class="card shadow">
+                <div class="card-body p-4">
+                    <div class="text-center mb-4">
+                        <i class="bi bi-lightning-charge text-primary" style="font-size: 3rem;"></i>
+                        <h3 class="mt-2">EcoEnergy</h3>
+                        <p class="text-muted">Registrar Nueva Empresa</p>
+                    </div>
+
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        <!-- Información de la Empresa -->
+                        <div class="card mb-4">
+                            <div class="card-header">
+                                <h5 class="mb-0">
+                                    <i class="bi bi-building"></i>
+                                    Información de la Empresa
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-12 mb-3">
+                                        <label for="organization_name" class="form-label">
+                                            Nombre de la Empresa <span class="text-danger">*</span>
+                                        </label>
+                                        <input type="text" 
+                                               class="form-control" 
+                                               id="organization_name" 
+                                               name="organization_name" 
+                                               required
+                                               placeholder="Ej: Mi Empresa S.A.">
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label for="organization_email" class="form-label">
+                                            Correo de la Empresa <span class="text-danger">*</span>
+                                        </label>
+                                        <input type="email" 
+                                               class="form-control" 
+                                               id="organization_email" 
+                                               name="organization_email" 
+                                               required
+                                               placeholder="contacto@empresa.com">
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label for="organization_phone" class="form-label">
+                                            Teléfono de la Empresa
+                                        </label>
+                                        <input type="tel" 
+                                               class="form-control" 
+                                               id="organization_phone" 
+                                               name="organization_phone"
+                                               placeholder="+56 9 1234 5678">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Información del Usuario Administrador -->
+                        <div class="card mb-4">
+                            <div class="card-header">
+                                <h5 class="mb-0">
+                                    <i class="bi bi-person"></i>
+                                    Usuario Administrador
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label for="first_name" class="form-label">
+                                            Nombres
+                                        </label>
+                                        <input type="text" 
+                                               class="form-control" 
+                                               id="first_name" 
+                                               name="first_name"
+                                               placeholder="Juan">
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label for="last_name" class="form-label">
+                                            Apellidos
+                                        </label>
+                                        <input type="text" 
+                                               class="form-control" 
+                                               id="last_name" 
+                                               name="last_name"
+                                               placeholder="Pérez">
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label for="username" class="form-label">
+                                            Nombre de Usuario <span class="text-danger">*</span>
+                                        </label>
+                                        <input type="text" 
+                                               class="form-control" 
+                                               id="username" 
+                                               name="username" 
+                                               required
+                                               placeholder="usuario123">
+                                        <small class="form-text text-muted">
+                                            Solo letras, números y los caracteres @/./+/-/_
+                                        </small>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label for="email" class="form-label">
+                                            Correo Personal <span class="text-danger">*</span>
+                                        </label>
+                                        <input type="email" 
+                                               class="form-control" 
+                                               id="email" 
+                                               name="email" 
+                                               required
+                                               placeholder="usuario@email.com">
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label for="position" class="form-label">
+                                            Cargo en la Empresa
+                                        </label>
+                                        <input type="text" 
+                                               class="form-control" 
+                                               id="position" 
+                                               name="position"
+                                               placeholder="Gerente General">
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label for="phone" class="form-label">
+                                            Teléfono Personal
+                                        </label>
+                                        <input type="tel" 
+                                               class="form-control" 
+                                               id="phone" 
+                                               name="phone"
+                                               placeholder="+56 9 8765 4321">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Contraseña -->
+                        <div class="card mb-4">
+                            <div class="card-header">
+                                <h5 class="mb-0">
+                                    <i class="bi bi-lock"></i>
+                                    Contraseña
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label for="password" class="form-label">
+                                            Contraseña <span class="text-danger">*</span>
+                                        </label>
+                                        <input type="password" 
+                                               class="form-control" 
+                                               id="password" 
+                                               name="password" 
+                                               required
+                                               placeholder="Mínimo 8 caracteres">
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label for="password_confirm" class="form-label">
+                                            Confirmar Contraseña <span class="text-danger">*</span>
+                                        </label>
+                                        <input type="password" 
+                                               class="form-control" 
+                                               id="password_confirm" 
+                                               name="password_confirm" 
+                                               required
+                                               placeholder="Repite la contraseña">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="bi bi-person-plus"></i>
+                                Registrar Empresa
+                            </button>
+                        </div>
+                    </form>
+
+                    <hr class="my-4">
+
+                    <div class="text-center">
+                        <p class="mb-0">
+                            ¿Ya tienes cuenta? 
+                            <a href="{% url 'login' %}" class="text-decoration-none">
+                                <strong>Iniciar Sesión</strong>
+                            </a>
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Información adicional -->
+            <div class="text-center mt-4">
+                <small class="text-muted">
+                    <i class="bi bi-info-circle"></i>
+                    Los campos marcados con <span class="text-danger">*</span> son obligatorios
+                </small>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,191 @@
+{% extends 'monitoring/base.html' %}
+
+{% block title %}Dashboard - EcoEnergy{% endblock %}
+
+{% block content %}
+<div class="py-4">
+    <h1 class="mb-4">
+        <i class="bi bi-house"></i>
+        Dashboard - {{ organization.name }}
+    </h1>
+
+    {% if error %}
+        <div class="alert alert-danger">
+            <i class="bi bi-exclamation-triangle"></i>
+            {{ error }}
+        </div>
+    {% else %}
+    
+    <!-- Resúmenes por tarjetas -->
+    <div class="row mb-4">
+        <!-- Dispositivos por Categoría -->
+        <div class="col-md-6 mb-3">
+            <div class="card card-stat h-100">
+                <div class="card-body">
+                    <h5 class="card-title">
+                        <i class="bi bi-tags"></i>
+                        Dispositivos por Categoría
+                    </h5>
+                    {% if devices_by_category %}
+                        {% for item in devices_by_category %}
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span>{{ item.category__name }}</span>
+                            <span class="badge bg-light text-dark">{{ item.count }}</span>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <p class="text-muted">No hay dispositivos registrados.</p>
+                    {% endif %}
+                    <a href="{% url 'device_list' %}" class="btn btn-light btn-sm mt-2">
+                        Ver todos los dispositivos
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Dispositivos por Zona -->
+        <div class="col-md-6 mb-3">
+            <div class="card card-stat h-100">
+                <div class="card-body">
+                    <h5 class="card-title">
+                        <i class="bi bi-geo-alt"></i>
+                        Dispositivos por Zona
+                    </h5>
+                    {% if devices_by_zone %}
+                        {% for item in devices_by_zone %}
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span>{{ item.zone__name }}</span>
+                            <span class="badge bg-light text-dark">{{ item.count }}</span>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <p class="text-muted">No hay zonas con dispositivos.</p>
+                    {% endif %}
+                    <a href="{% url 'device_list' %}" class="btn btn-light btn-sm mt-2">
+                        Ver dispositivos por zona
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Alertas de la Semana -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="bi bi-exclamation-triangle"></i>
+                        Alertas de la Semana
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row text-center mb-3">
+                        <div class="col-3">
+                            <div class="alert alert-danger mb-0">
+                                <h4>{{ alerts_summary.CRITICAL }}</h4>
+                                <small>Críticas</small>
+                            </div>
+                        </div>
+                        <div class="col-3">
+                            <div class="alert alert-warning mb-0">
+                                <h4>{{ alerts_summary.HIGH }}</h4>
+                                <small>Altas</small>
+                            </div>
+                        </div>
+                        <div class="col-3">
+                            <div class="alert alert-info mb-0">
+                                <h4>{{ alerts_summary.MEDIUM }}</h4>
+                                <small>Medias</small>
+                            </div>
+                        </div>
+                        <div class="col-3">
+                            <div class="alert alert-success mb-0">
+                                <h4>{{ alerts_summary.LOW }}</h4>
+                                <small>Bajas</small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Alertas Recientes -->
+                    {% if recent_alerts %}
+                    <h6>Alertas Recientes:</h6>
+                    {% for alert in recent_alerts %}
+                        <div class="alert alert-{{ alert.severity|lower }} alert-dismissible">
+                            <strong>{{ alert.device.name }}</strong> - {{ alert.severity }}
+                            <br>
+                            <small>{{ alert.message }}</small>
+                            <br>
+                            <small class="text-muted">{{ alert.created_at }}</small>
+                        </div>
+                    {% endfor %}
+                    {% else %}
+                        <p class="text-muted">No hay alertas recientes.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Últimas Mediciones -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">
+                        <i class="bi bi-graph-up"></i>
+                        Últimas 10 Mediciones
+                    </h5>
+                    <a href="{% url 'measurement_list' %}" class="btn btn-primary btn-sm">
+                        Ver todas
+                    </a>
+                </div>
+                <div class="card-body">
+                    {% if latest_measurements %}
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Fecha/Hora</th>
+                                    <th>Dispositivo</th>
+                                    <th>Consumo (kW)</th>
+                                    <th>Zona</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for measurement in latest_measurements %}
+                                <tr>
+                                    <td>{{ measurement.measurement_date|date:"d/m/Y H:i" }}</td>
+                                    <td>
+                                        <a href="{% url 'device_detail' measurement.device.id %}">
+                                            {{ measurement.device.name }}
+                                        </a>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-primary">
+                                            {{ measurement.consumption_value }} kW
+                                        </span>
+                                    </td>
+                                    <td>{{ measurement.device.zone.name }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="text-center py-4">
+                        <i class="bi bi-inbox" style="font-size: 3rem; color: #ccc;"></i>
+                        <h5 class="text-muted mt-3">No hay mediciones disponibles</h5>
+                        <p class="text-muted">
+                            Cuando se registren mediciones, aparecerán aquí.
+                        </p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% endif %}
+</div>
+{% endblock %}
