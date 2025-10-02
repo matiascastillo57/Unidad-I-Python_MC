@@ -1,0 +1,48 @@
+{% extends 'base.html' %}
+
+{% block title %}Inicio - EcoEnergy{% endblock %}
+
+{% block content %}
+<div class="card">
+    <h2>🌟 Bienvenido al Sistema EcoEnergy</h2>
+    <p>Sistema de monitoreo energético para oficinas inteligentes.</p>
+</div>
+
+<div class="stats">
+    <div class="stat">
+        <h3>{{ total_dispositivos }}</h3>
+        <p>Dispositivos Activos</p>
+    </div>
+    <div class="stat">
+        <h3>{{ dispositivos_criticos }}</h3>
+        <p>Dispositivos Críticos</p>
+    </div>
+    <div class="stat">
+        <h3>{{ alertas_pendientes }}</h3>
+        <p>Alertas Pendientes</p>
+    </div>
+</div>
+
+<div class="card">
+    <h3>📱 Dispositivos Recientes</h3>
+    {% for dispositivo in dispositivos_recientes %}
+    <div class="device {% if dispositivo.esta_en_limite %}normal{% else %}critico{% endif %}">
+        <strong>{{ dispositivo.nombre }}</strong> 
+        - {{ dispositivo.categoria.nombre }} 
+        - {{ dispositivo.zona.nombre }}
+        <br>
+        <small>
+            Consumo: {{ dispositivo.consumo_actual }}W / {{ dispositivo.consumo_max }}W 
+            ({{ dispositivo.porcentaje_consumo }}%)
+        </small>
+        {% if not dispositivo.esta_en_limite %}
+            <span style="color: #e74c3c; font-weight: bold;">⚠️ EXCEDE LÍMITE</span>
+        {% endif %}
+    </div>
+    {% empty %}
+    <p>No hay dispositivos registrados.</p>
+    {% endfor %}
+    
+    <a href="{% url 'dispositivos:panel' %}" class="btn">Ver Panel Completo</a>
+</div>
+{% endblock %}

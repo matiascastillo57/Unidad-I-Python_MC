@@ -1,0 +1,35 @@
+{% extends 'base.html' %}
+
+{% block title %}Mediciones - EcoEnergy{% endblock %}
+
+{% block content %}
+<div class="card">
+    <h2>📈 Historial de Mediciones</h2>
+    <p>Últimas 50 mediciones registradas en el sistema.</p>
+</div>
+
+<div class="card">
+    {% for medicion in mediciones %}
+    <div class="device normal">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+            <div>
+                <strong>{{ medicion.dispositivo.nombre }}</strong>
+                <br>
+                <small>{{ medicion.dispositivo.categoria.nombre }} - {{ medicion.dispositivo.zona.nombre }}</small>
+            </div>
+            <div style="text-align: right;">
+                <strong>{{ medicion.consumo }}W</strong>
+                <br>
+                <small>{{ medicion.fecha_medicion|date:"d/m/Y H:i" }}</small>
+            </div>
+        </div>
+    </div>
+    {% empty %}
+    <p>No hay mediciones registradas en el sistema.</p>
+    {% endfor %}
+</div>
+
+<div class="card">
+    <a href="{% url 'dispositivos:inicio' %}" class="btn">← Volver al Inicio</a>
+</div>
+{% endblock %}

@@ -4,6 +4,8 @@ from django.contrib.auth.decorators import login_required
 from django.db.models import Count
 from datetime import datetime, timedelta
 from .models import Organization, Device, Measurement, Alert, Category
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth.mixins import LoginRequiredMixin
 
 def get_user_organization(user):
     """

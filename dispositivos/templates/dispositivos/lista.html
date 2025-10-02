@@ -1,0 +1,69 @@
+{% extends 'base.html' %}
+
+{% block title %}Panel de Dispositivos - EcoEnergy{% endblock %}
+
+{% block content %}
+<div class="card">
+    <h2>📊 Panel de Dispositivos Conectados</h2>
+    
+    <div class="stats">
+        <div class="stat">
+            <h3>{{ total_dispositivos }}</h3>
+            <p>Total Dispositivos</p>
+        </div>
+        <div class="stat">
+            <h3>{{ dispositivos_criticos }}</h3>
+            <p>En Estado Crítico</p>
+        </div>
+    </div>
+    
+    {% if dispositivos_criticos > 0 %}
+    <div class="alert warning">
+        ⚠️ <strong>Atención:</strong> {{ dispositivos_criticos }} dispositivo{{ dispositivos_criticos|pluralize }} excede{{ dispositivos_criticos|pluralize:"n," }} el límite de consumo.
+    </div>
+    {% else %}
+    <div class="alert success">
+        ✅ <strong>Sistema OK:</strong> Todos los dispositivos están dentro de los límites permitidos.
+    </div>
+    {% endif %}
+</div>
+
+<div class="card">
+    <h3>📱 Lista de Dispositivos</h3>
+    
+    {% for dispositivo in dispositivos %}
+    <div class="device {% if dispositivo.esta_en_limite %}normal{% else %}critico{% endif %}">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+            <div>
+                <strong>{{ dispositivo.nombre }}</strong>
+                <br>
+                <small>
+                    📂 {{ dispositivo.categoria.nombre }} | 
+                    📍 {{ dispositivo.zona.nombre }} |
+                    🔌 {{ dispositivo.consumo_actual }}W / {{ dispositivo.consumo_max }}W
+                </small>
+            </div>
+            <div style="text-align: right;">
+                {% if dispositivo.esta_en_limite %}
+                    <span style="color: #27ae60; font-weight: bold;">✅ OK</span>
+                {% else %}
+                    <span style="color: #e74c3c; font-weight: bold;">⚠️ CRÍTICO</span>
+                {% endif %}
+                <br>
+                <small>{{ dispositivo.porcentaje_consumo }}%</small>
+                <br>
+                <a href="{% url 'dispositivos:detalle' dispositivo.id %}" class="btn" style="font-size: 0.8em; padding: 0.3rem 0.6rem;">Ver Detalle</a>
+            </div>
+        </div>
+    </div>
+    {% empty %}
+    <p>No hay dispositivos registrados en el sistema.</p>
+    {% endfor %}
+</div>
+
+<div class="card">
+    <h3>🔗 Acciones Rápidas</h3>
+    <a href="{% url 'dispositivos:mediciones' %}" class="btn">📈 Ver Mediciones</a>
+    <a href="/admin/dispositivos/dispositivo/add/" class="btn">➕ Agregar Dispositivo</a>
+</div>
+{% endblock %}

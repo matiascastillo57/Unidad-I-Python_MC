@@ -1,5 +1,5 @@
 """
-URL configuration for ecoenergy project.
+URL configuration for monitoreo project.
 
 The `urlpatterns` list routes URLs to views. For more information please see:
     https://docs.djangoproject.com/en/4.2/topics/http/urls/
@@ -14,19 +14,10 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
-# ecoenergy/urls.py - URLs principales actualizadas
 from django.contrib import admin
 from django.urls import path, include
-from django.conf import settings
-from django.conf.urls.static import static
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('', include('monitoring.urls')),  # Sistema de monitoreo
-    path('auth/', include('usuarios.urls')),  # Auth básico (mantener compatibilidad)
-    path('accounts/', include('accounts.urls')),  # Auth avanzado
+    path('', include('dispositivos.urls')),
 ]
-
-# Servir archivos media en desarrollo
-if settings.DEBUG:
-    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

@@ -1,0 +1,79 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ dispositivo.nombre }} - Detalle{% endblock %}
+
+{% block content %}
+<div class="card">
+    <h2>📱 {{ dispositivo.nombre }}</h2>
+    
+    <div class="stats">
+        <div class="stat">
+            <h3>{{ dispositivo.consumo_actual }}W</h3>
+            <p>Consumo Actual</p>
+        </div>
+        <div class="stat">
+            <h3>{{ dispositivo.consumo_max }}W</h3>
+            <p>Consumo Máximo</p>
+        </div>
+        <div class="stat">
+            <h3>{{ dispositivo.porcentaje_consumo }}%</h3>
+            <p>Porcentaje Uso</p>
+        </div>
+        <div class="stat">
+            <h3>{{ promedio_consumo }}W</h3>
+            <p>Promedio Histórico</p>
+        </div>
+    </div>
+    
+    <div style="display: flex; gap: 2rem; margin: 1rem 0;">
+        <div>
+            <strong>📂 Categoría:</strong> {{ dispositivo.categoria.nombre }}
+        </div>
+        <div>
+            <strong>📍 Zona:</strong> {{ dispositivo.zona.nombre }}
+        </div>
+        <div>
+            <strong>📊 Estado:</strong> 
+            {% if dispositivo.esta_en_limite %}
+                <span style="color: #27ae60;">✅ Dentro del límite</span>
+            {% else %}
+                <span style="color: #e74c3c;">⚠️ Excede el límite</span>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <h3>📈 Últimas Mediciones</h3>
+    {% for medicion in mediciones %}
+    <div class="device normal">
+        <strong>{{ medicion.consumo }}W</strong> - {{ medicion.fecha_medicion|date:"d/m/Y H:i" }}
+    </div>
+    {% empty %}
+    <p>No hay mediciones registradas para este dispositivo.</p>
+    {% endfor %}
+</div>
+
+<div class="card">
+    <h3>🚨 Alertas Recientes</h3>
+    {% for alerta in alertas %}
+    <div class="alert {% if alerta.tipo == 'CRITICO' %}warning{% endif %}">
+        <strong>{{ alerta.get_tipo_display }}</strong> - {{ alerta.fecha_alerta|date:"d/m/Y H:i" }}
+        <br>
+        {{ alerta.mensaje }}
+        {% if alerta.resuelta %}
+            <span style="color: #27ae60;">✅ Resuelta</span>
+        {% else %}
+            <span style="color: #e74c3c;">⏳ Pendiente</span>
+        {% endif %}
+    </div>
+    {% empty %}
+    <p>No hay alertas para este dispositivo.</p>
+    {% endfor %}
+</div>
+
+<div class="card">
+    <a href="{% url 'dispositivos:panel' %}" class="btn">← Volver al Panel</a>
+    <a href="/admin/dispositivos/dispositivo/{{ dispositivo.id }}/change/" class="btn">✏️ Editar</a>
+</div>
+{% endblock %}

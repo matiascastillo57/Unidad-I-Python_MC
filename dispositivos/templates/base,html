@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}EcoEnergy - Sistema de Monitoreo{% endblock %}</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 0; background-color: #f5f5f5; }
+        .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+        .header { background: #2c3e50; color: white; padding: 1rem; margin-bottom: 2rem; }
+        .nav { background: #34495e; padding: 1rem; }
+        .nav a { color: white; text-decoration: none; margin-right: 1rem; padding: 0.5rem 1rem; }
+        .nav a:hover { background: #2c3e50; border-radius: 4px; }
+        .card { background: white; padding: 1.5rem; margin: 1rem 0; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .device { border: 1px solid #ddd; padding: 1rem; margin: 0.5rem 0; border-radius: 4px; }
+        .device.critico { border-left: 5px solid #e74c3c; background: #fdf2f2; }
+        .device.normal { border-left: 5px solid #27ae60; background: #f8fff8; }
+        .alert { padding: 1rem; border-radius: 4px; margin: 1rem 0; }
+        .alert.warning { background: #fff3cd; border: 1px solid #ffeaa7; }
+        .alert.success { background: #d4edda; border: 1px solid #c3e6cb; }
+        .btn { display: inline-block; padding: 0.5rem 1rem; background: #3498db; color: white; text-decoration: none; border-radius: 4px; }
+        .btn:hover { background: #2980b9; }
+        .stats { display: flex; gap: 1rem; margin: 1rem 0; }
+        .stat { flex: 1; text-align: center; padding: 1rem; background: white; border-radius: 4px; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🌱 EcoEnergy - Sistema de Monitoreo Energético</h1>
+    </div>
+    
+    <div class="nav">
+        <a href="{% url 'dispositivos:inicio' %}">🏠 Inicio</a>
+        <a href="{% url 'dispositivos:panel' %}">📊 Panel Dispositivos</a>
+        <a href="{% url 'dispositivos:mediciones' %}">📈 Mediciones</a>
+        <a href="/admin/">⚙️ Admin</a>
+    </div>
+
+    <div class="container">
+        {% block content %}
+        {% endblock %}
+    </div>
+</body>
+</html>
