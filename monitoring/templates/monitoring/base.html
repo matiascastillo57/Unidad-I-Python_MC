@@ -5,15 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}EcoEnergy - Sistema de Monitoreo{% endblock %}</title>
     
-    <!-- Bootstrap CSS -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.1.3/css/bootstrap.min.css" rel="stylesheet">
-    <!-- Bootstrap Icons -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.8.1/font/bootstrap-icons.min.css" rel="stylesheet">
     
     <style>
-        .navbar-brand {
-            font-weight: bold;
-        }
+        .navbar-brand { font-weight: bold; }
         .card-stat {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
@@ -26,9 +22,7 @@
             min-height: calc(100vh - 56px);
             background-color: #f8f9fa;
         }
-        .main-content {
-            min-height: calc(100vh - 56px);
-        }
+        .main-content { min-height: calc(100vh - 56px); }
     </style>
 </head>
 <body>
@@ -70,10 +64,22 @@
                             <i class="bi bi-person"></i>
                             {{ user.get_full_name|default:user.username }}
                         </a>
-                        <ul class="dropdown-menu">
-                            <li><a class="dropdown-item" href="{% url 'logout' %}">
-                                <i class="bi bi-box-arrow-right"></i> Cerrar Sesión
-                            </a></li>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li>
+                                <a class="dropdown-item" href="{% url 'password_change' %}">
+                                    <i class="bi bi-key"></i> Cambiar Contraseña
+                                </a>
+                            </li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li>
+                                <!-- LOGOUT POR POST (CORRECTO) -->
+                                <form action="{% url 'logout' %}" method="post" class="d-inline">
+                                    {% csrf_token %}
+                                    <button type="submit" class="dropdown-item">
+                                        <i class="bi bi-box-arrow-right"></i> Cerrar Sesión
+                                    </button>
+                                </form>
+                            </li>
                         </ul>
                     </li>
                 </ul>
@@ -111,7 +117,7 @@
     <div class="container-fluid">
         <div class="row">
             {% if user.is_authenticated %}
-            <!-- Sidebar (opcional) -->
+            <!-- Sidebar -->
             <nav class="col-md-2 d-none d-md-block sidebar">
                 <div class="position-sticky pt-3">
                     <ul class="nav flex-column">
@@ -128,6 +134,11 @@
                         <li class="nav-item">
                             <a class="nav-link text-dark" href="{% url 'measurement_list' %}">
                                 <i class="bi bi-graph-up"></i> Mediciones
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link text-dark" href="{% url 'password_change' %}">
+                                <i class="bi bi-key"></i> Cambiar Contraseña
                             </a>
                         </li>
                     </ul>
@@ -155,7 +166,6 @@
         </div>
     </footer>
 
-    <!-- Bootstrap JS -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.1.3/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

@@ -2,6 +2,7 @@
 from django.shortcuts import render, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.db.models import Count
+from django.http import JsonResponse
 from datetime import datetime, timedelta
 from .models import Organization, Device, Measurement, Alert, Category
 
@@ -172,6 +173,73 @@ def measurement_list(request):
     if not organization:
         context = {'error': 'Usuario sin organización asignada'}
         return render(request, 'monitoring/measurement_list.html', context)
+    
+@login_required
+def api_measurements_json(request):
+    """API que retorna las mediciones en formato JSON"""
+    organization = get_user_organization(request.user)
+    
+    if not organization:
+        return JsonResponse({'error': 'Usuario sin organización'}, status=403)
+    
+    limit = int(request.GET.get('limit', 50))
+    measurements = Measurement.objects.filter(
+        organization=organization,
+        state='ACTIVE'
+    ).select_related('device')[:limit]
+    
+    data = {
+        'count': measurements.count(),
+        'measurements': [m.to_dict() for m in measurements]
+    }
+    
+    return JsonResponse(data)
+
+@login_required
+def api_alerts_json(request):
+    """API que retorna las alertas en formato JSON"""
+    organization = get_user_organization(request.user)
+    
+    if not organization:
+        return JsonResponse({'error': 'Usuario sin organización'}, status=403)
+    
+    limit = int(request.GET.get('limit', 50))
+    alerts = Alert.objects.filter(
+        organization=organization,
+        state='ACTIVE'
+    ).select_related('device')[:limit]
+    
+    data = {
+        'count': alerts.count(),
+        'alerts': [a.to_dict() for a in alerts]
+    }
+    
+    return JsonResponse(data)
+
+@login_required
+def api_devices_json(request):
+    """API que retorna los dispositivos en formato JSON"""
+    organization = get_user_organization(request.user)
+    
+    if not organization:
+        return JsonResponse({'error': 'Usuario sin organización'}, status=403)
+    
+    devices = Device.objects.filter(
+        organization=organization,
+        state='ACTIVE'
+    ).select_related('category', 'zone')
+    
+    devices_data = []
+    for device in devices:
+        devices_data.append({
+            'id': device.id,
+            'name': device.name,
+            'max_consumption': float(device.max_consumption),
+            'category': device.category.name,
+            'zone': device.zone.name,
+        })
+    
+    return JsonResponse({'count': len(devices_data), 'devices': devices_data})
     
     # Obtener mediciones (últimas 50)
     measurements = Measurement.objects.filter(

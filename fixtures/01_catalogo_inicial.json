@@ -1,0 +1,138 @@
+[
+  {
+    "model": "monitoring.organization",
+    "pk": 1,
+    "fields": {
+      "name": "EcoTech Solutions",
+      "email": "contacto@ecotech.cl",
+      "phone": "+56 2 2345 6789",
+      "address": "Av. Providencia 1234, Santiago, Chile",
+      "logo": "",
+      "state": "ACTIVE",
+      "created_at": "2025-01-01T10:00:00Z",
+      "updated_at": "2025-01-01T10:00:00Z",
+      "deleted_at": null
+    }
+  },
+  {
+    "model": "monitoring.category",
+    "pk": 1,
+    "fields": {
+      "name": "Climatización",
+      "description": "Equipos de aire acondicionado y calefacción",
+      "organization": 1,
+      "icon": "",
+      "state": "ACTIVE",
+      "created_at": "2025-01-01T10:05:00Z",
+      "updated_at": "2025-01-01T10:05:00Z",
+      "deleted_at": null
+    }
+  },
+  {
+    "model": "monitoring.category",
+    "pk": 2,
+    "fields": {
+      "name": "Iluminación",
+      "description": "Sistemas de iluminación LED y tradicional",
+      "organization": 1,
+      "icon": "",
+      "state": "ACTIVE",
+      "created_at": "2025-01-01T10:06:00Z",
+      "updated_at": "2025-01-01T10:06:00Z",
+      "deleted_at": null
+    }
+  },
+  {
+    "model": "monitoring.category",
+    "pk": 3,
+    "fields": {
+      "name": "Cómputo",
+      "description": "Equipos de computación y servidores",
+      "organization": 1,
+      "icon": "",
+      "state": "ACTIVE",
+      "created_at": "2025-01-01T10:07:00Z",
+      "updated_at": "2025-01-01T10:07:00Z",
+      "deleted_at": null
+    }
+  },
+  {
+    "model": "monitoring.zone",
+    "pk": 1,
+    "fields": {
+      "name": "Oficina Principal",
+      "description": "Piso 1 - Área administrativa",
+      "organization": 1,
+      "floor_plan": "",
+      "state": "ACTIVE",
+      "created_at": "2025-01-01T10:10:00Z",
+      "updated_at": "2025-01-01T10:10:00Z",
+      "deleted_at": null
+    }
+  },
+  {
+    "model": "monitoring.zone",
+    "pk": 2,
+    "fields": {
+      "name": "Sala de Servidores",
+      "description": "Piso 2 - Data center",
+      "organization": 1,
+      "floor_plan": "",
+      "state": "ACTIVE",
+      "created_at": "2025-01-01T10:11:00Z",
+      "updated_at": "2025-01-01T10:11:00Z",
+      "deleted_at": null
+    }
+  },
+  {
+    "model": "monitoring.device",
+    "pk": 1,
+    "fields": {
+      "name": "AC Oficina Principal",
+      "description": "Aire acondicionado central 24000 BTU",
+      "max_consumption": "3.50",
+      "category": 1,
+      "zone": 1,
+      "organization": 1,
+      "imagen": "",
+      "state": "ACTIVE",
+      "created_at": "2025-01-01T10:15:00Z",
+      "updated_at": "2025-01-01T10:15:00Z",
+      "deleted_at": null
+    }
+  },
+  {
+    "model": "monitoring.device",
+    "pk": 2,
+    "fields": {
+      "name": "Luces LED Oficina",
+      "description": "Panel LED 40W - 10 unidades",
+      "max_consumption": "0.40",
+      "category": 2,
+      "zone": 1,
+      "organization": 1,
+      "imagen": "",
+      "state": "ACTIVE",
+      "created_at": "2025-01-01T10:16:00Z",
+      "updated_at": "2025-01-01T10:16:00Z",
+      "deleted_at": null
+    }
+  },
+  {
+    "model": "monitoring.device",
+    "pk": 3,
+    "fields": {
+      "name": "Servidor Principal",
+      "description": "Dell PowerEdge R740",
+      "max_consumption": "1.20",
+      "category": 3,
+      "zone": 2,
+      "organization": 1,
+      "imagen": "",
+      "state": "ACTIVE",
+      "created_at": "2025-01-01T10:17:00Z",
+      "updated_at": "2025-01-01T10:17:00Z",
+      "deleted_at": null
+    }
+  }
+]

@@ -45,13 +45,11 @@ class BaseModel(models.Model):
         abstract = True  # Esta clase no creará tabla, solo sirve de plantilla
 
 class Organization(BaseModel):
-    """
-    Empresa que contrata el servicio de EcoEnergy
-    """
-    name = models.CharField(max_length=200, help_text="Nombre de la empresa")
-    email = models.EmailField(help_text="Correo electrónico de contacto")
-    phone = models.CharField(max_length=20, blank=True, help_text="Teléfono")
-    address = models.TextField(blank=True, help_text="Dirección de la empresa")
+    name = models.CharField(max_length=200)
+    email = models.EmailField()
+    phone = models.CharField(max_length=20, blank=True)
+    address = models.TextField(blank=True)
+    logo = models.ImageField(upload_to='organizaciones/', null=True, blank=True)  # ← Esta línea
     
     def __str__(self):
         return self.name
@@ -71,6 +69,12 @@ class Category(BaseModel):
         on_delete=models.CASCADE,
         help_text="Empresa propietaria"
     )
+    icon = models.ImageField(
+        upload_to='categorias/',
+        null=True,
+        blank=True,
+        help_text="Icono de la categoría"
+    )
     
     def __str__(self):
         return f"{self.name} ({self.organization.name})"
@@ -89,6 +93,12 @@ class Zone(BaseModel):
         Organization, 
         on_delete=models.CASCADE,
         help_text="Empresa propietaria"
+    )
+    floor_plan = models.ImageField(
+        upload_to='zonas/',
+        null=True,
+        blank=True,
+        help_text="Plano de la zona"
     )
     
     def __str__(self):
@@ -123,6 +133,12 @@ class Device(BaseModel):
         Organization, 
         on_delete=models.CASCADE,
         help_text="Empresa propietaria"
+    )
+    imagen = models.ImageField(
+        upload_to='dispositivos/',
+        null=True,
+        blank=True,
+        help_text="Imagen del dispositivo"
     )
     
     def __str__(self):
