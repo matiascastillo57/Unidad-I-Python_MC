@@ -165,15 +165,26 @@ def device_detail(request, device_id):
 
 @login_required
 def measurement_list(request):
-    """
-    Vista para listar todas las mediciones
-    """
+    """Vista para listar mediciones"""
     organization = get_user_organization(request.user)
     
     if not organization:
         context = {'error': 'Usuario sin organización asignada'}
         return render(request, 'monitoring/measurement_list.html', context)
     
+    # Obtener mediciones (últimas 50)
+    measurements = Measurement.objects.filter(
+        organization=organization,
+        state='ACTIVE'
+    ).select_related('device', 'device__zone', 'device__category').order_by('-measurement_date')[:50]
+    
+    context = {
+        'measurements': measurements,
+        'organization': organization,
+    }
+    
+    return render(request, 'monitoring/measurement_list.html', context)
+
 @login_required
 def api_measurements_json(request):
     """API que retorna las mediciones en formato JSON"""
@@ -240,16 +251,3 @@ def api_devices_json(request):
         })
     
     return JsonResponse({'count': len(devices_data), 'devices': devices_data})
-    
-    # Obtener mediciones (últimas 50)
-    measurements = Measurement.objects.filter(
-        organization=organization,
-        state='ACTIVE'
-    ).select_related('device').order_by('-measurement_date')[:50]
-    
-    context = {
-        'measurements': measurements,
-        'organization': organization,
-    }
-    
-    return render(request, 'monitoring/measurement_list.html', context)
