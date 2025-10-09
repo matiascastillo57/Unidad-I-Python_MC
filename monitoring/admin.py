@@ -314,32 +314,11 @@ class ZoneAdmin(admin.ModelAdmin):
 
 @admin.register(Device)
 class DeviceAdmin(admin.ModelAdmin):
-    list_display = (
-        'name', 
-        'category', 
-        'zone', 
-        'organization', 
-        'max_consumption_display',
-        'last_measurement',
-        'alert_count',
-        'state'
-    )
+    list_display = ('name', 'category', 'zone', 'organization', 'max_consumption_display','last_measurement','alert_count','state')
     
-    search_fields = (
-        'name', 
-        'description', 
-        'category__name', 
-        'zone__name',
-        'organization__name'
-    )
+    search_fields = ('name', 'description', 'category__name', 'zone__name','organization__name')
     
-    list_filter = (
-        'state', 
-        'category', 
-        'zone', 
-        'organization',
-        'created_at'
-    )
+    list_filter = ('state', 'category', 'zone', 'organization','created_at')
     
     ordering = ('organization', 'zone', 'name')
     list_select_related = ('category', 'zone', 'organization')
