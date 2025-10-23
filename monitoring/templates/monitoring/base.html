@@ -23,7 +23,24 @@
             background-color: #f8f9fa;
         }
         .main-content { min-height: calc(100vh - 56px); }
+        
+        /* Estilos para mensajes flash */
+        .alert {
+            animation: slideIn 0.3s ease-out;
+        }
+        @keyframes slideIn {
+            from {
+                transform: translateY(-20px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
     </style>
+    
+    {% block extra_css %}{% endblock %}
 </head>
 <body>
     <!-- Navbar -->
@@ -42,20 +59,39 @@
                 {% if user.is_authenticated %}
                 <ul class="navbar-nav me-auto">
                     <li class="nav-item">
-                        <a class="nav-link" href="{% url 'dashboard' %}">
+                        <a class="nav-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}" 
+                           href="{% url 'dashboard' %}">
                             <i class="bi bi-house"></i> Dashboard
                         </a>
                     </li>
+                    
+                    <!-- MENU CONDICIONADO POR PERMISOS -->
+                    {% if perms.monitoring.view_zone %}
                     <li class="nav-item">
-                        <a class="nav-link" href="{% url 'device_list' %}">
+                        <a class="nav-link {% if request.resolver_match.url_name == 'zona_list' %}active{% endif %}" 
+                           href="{% url 'zona_list' %}">
+                            <i class="bi bi-geo-alt"></i> Zonas
+                        </a>
+                    </li>
+                    {% endif %}
+                    
+                    {% if perms.monitoring.view_device %}
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.resolver_match.url_name == 'device_list' %}active{% endif %}" 
+                           href="{% url 'device_list' %}">
                             <i class="bi bi-cpu"></i> Dispositivos
                         </a>
                     </li>
+                    {% endif %}
+                    
+                    {% if perms.monitoring.view_measurement %}
                     <li class="nav-item">
-                        <a class="nav-link" href="{% url 'measurement_list' %}">
+                        <a class="nav-link {% if request.resolver_match.url_name == 'measurement_list' %}active{% endif %}" 
+                           href="{% url 'measurement_list' %}">
                             <i class="bi bi-graph-up"></i> Mediciones
                         </a>
                     </li>
+                    {% endif %}
                 </ul>
                 
                 <ul class="navbar-nav">
@@ -72,7 +108,6 @@
                             </li>
                             <li><hr class="dropdown-divider"></li>
                             <li>
-                                <!-- LOGOUT POR POST (CORRECTO) -->
                                 <form action="{% url 'logout' %}" method="post" class="d-inline">
                                     {% csrf_token %}
                                     <button type="submit" class="dropdown-item">
@@ -101,13 +136,22 @@
         </div>
     </nav>
 
-    <!-- Mensajes -->
+    <!-- MENSAJES FLASH (INTEGRACIÓN CON BOOTSTRAP 5) -->
     {% if messages %}
         <div class="container-fluid mt-3">
             {% for message in messages %}
                 <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                    {% if message.tags == 'success' %}
+                        <i class="bi bi-check-circle-fill"></i>
+                    {% elif message.tags == 'danger' %}
+                        <i class="bi bi-exclamation-triangle-fill"></i>
+                    {% elif message.tags == 'warning' %}
+                        <i class="bi bi-exclamation-circle-fill"></i>
+                    {% elif message.tags == 'info' %}
+                        <i class="bi bi-info-circle-fill"></i>
+                    {% endif %}
                     {{ message }}
-                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                 </div>
             {% endfor %}
         </div>
@@ -122,21 +166,40 @@
                 <div class="position-sticky pt-3">
                     <ul class="nav flex-column">
                         <li class="nav-item">
-                            <a class="nav-link text-dark" href="{% url 'dashboard' %}">
+                            <a class="nav-link text-dark {% if request.resolver_match.url_name == 'dashboard' %}active fw-bold{% endif %}" 
+                               href="{% url 'dashboard' %}">
                                 <i class="bi bi-house"></i> Dashboard
                             </a>
                         </li>
+                        
+                        {% if perms.monitoring.view_zone %}
                         <li class="nav-item">
-                            <a class="nav-link text-dark" href="{% url 'device_list' %}">
+                            <a class="nav-link text-dark {% if request.resolver_match.url_name == 'zona_list' %}active fw-bold{% endif %}" 
+                               href="{% url 'zona_list' %}">
+                                <i class="bi bi-geo-alt"></i> Zonas
+                            </a>
+                        </li>
+                        {% endif %}
+                        
+                        {% if perms.monitoring.view_device %}
+                        <li class="nav-item">
+                            <a class="nav-link text-dark {% if request.resolver_match.url_name == 'device_list' %}active fw-bold{% endif %}" 
+                               href="{% url 'device_list' %}">
                                 <i class="bi bi-cpu"></i> Dispositivos
                             </a>
                         </li>
+                        {% endif %}
+                        
+                        {% if perms.monitoring.view_measurement %}
                         <li class="nav-item">
-                            <a class="nav-link text-dark" href="{% url 'measurement_list' %}">
+                            <a class="nav-link text-dark {% if request.resolver_match.url_name == 'measurement_list' %}active fw-bold{% endif %}" 
+                               href="{% url 'measurement_list' %}">
                                 <i class="bi bi-graph-up"></i> Mediciones
                             </a>
                         </li>
-                        <li class="nav-item">
+                        {% endif %}
+                        
+                        <li class="nav-item mt-3">
                             <a class="nav-link text-dark" href="{% url 'password_change' %}">
                                 <i class="bi bi-key"></i> Cambiar Contraseña
                             </a>
@@ -167,5 +230,10 @@
     </footer>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.1.3/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    
+    {% block extra_js %}{% endblock %}
 </body>
 </html>

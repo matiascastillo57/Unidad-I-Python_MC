@@ -285,3 +285,101 @@ class DeviceInlineFormSet(BaseInlineFormSet):
             # Solo advertencia en consola, no bloquea el guardado
             import warnings
             warnings.warn('No hay dispositivos activos en esta zona.')
+# Agregar al archivo monitoring/forms.py existente
+
+class ZoneForm(forms.ModelForm):
+    """
+    Formulario para crear y editar Zonas con validaciones
+    """
+    class Meta:
+        model = Zone
+        fields = ['name', 'description', 'organization', 'floor_plan']
+        widgets = {
+            'name': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Ej: Oficina Principal'
+            }),
+            'description': forms.Textarea(attrs={
+                'class': 'form-control',
+                'placeholder': 'Descripción de la zona',
+                'rows': 3
+            }),
+            'organization': forms.Select(attrs={
+                'class': 'form-select'
+            }),
+            'floor_plan': forms.FileInput(attrs={
+                'class': 'form-control'
+            })
+        }
+        labels = {
+            'name': 'Nombre de la Zona',
+            'description': 'Descripción',
+            'organization': 'Organización',
+            'floor_plan': 'Plano de la Zona'
+        }
+    
+    def __init__(self, *args, **kwargs):
+        # Obtener el usuario para limitar organizaciones
+        user = kwargs.pop('user', None)
+        super().__init__(*args, **kwargs)
+        
+        # Si el usuario no es superusuario, limitar organizaciones
+        if user and not user.is_superuser:
+            try:
+                user_org = user.userprofile.organization
+                self.fields['organization'].queryset = Organization.objects.filter(id=user_org.id)
+                self.fields['organization'].initial = user_org.id
+                self.fields['organization'].widget.attrs['readonly'] = True
+            except:
+                self.fields['organization'].queryset = Organization.objects.none()
+    
+    def clean_name(self):
+        """
+        Validar que el nombre no esté duplicado en la misma organización
+        """
+        name = self.cleaned_data.get('name')
+        organization = self.cleaned_data.get('organization')
+        
+        if name and organization:
+            # Verificar duplicados
+            qs = Zone.objects.filter(
+                name__iexact=name,  # Case-insensitive
+                organization=organization,
+                state='ACTIVE'
+            )
+            
+            # Excluir el objeto actual si estamos editando
+            if self.instance.pk:
+                qs = qs.exclude(pk=self.instance.pk)
+            
+            if qs.exists():
+                raise ValidationError(
+                    f'Ya existe una zona con el nombre "{name}" '
+                    f'en la organización {organization.name}.'
+                )
+        
+        return name
+    
+    def clean_floor_plan(self):
+        """
+        Validar el archivo de plano
+        """
+        floor_plan = self.cleaned_data.get('floor_plan')
+        
+        if floor_plan:
+            # Validar tamaño (máximo 5MB)
+            if floor_plan.size > 5 * 1024 * 1024:
+                raise ValidationError(
+                    'El archivo es demasiado grande. Tamaño máximo: 5MB'
+                )
+            
+            # Validar extensión
+            valid_extensions = ['.jpg', '.jpeg', '.png', '.pdf']
+            ext = floor_plan.name.lower()[floor_plan.name.rfind('.'):]
+            
+            if ext not in valid_extensions:
+                raise ValidationError(
+                    f'Formato no válido. Extensiones permitidas: {", ".join(valid_extensions)}'
+                )
+        
+        return floor_plan
