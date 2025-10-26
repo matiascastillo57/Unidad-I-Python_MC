@@ -1,0 +1,76 @@
+{% extends 'monitoring/base.html' %}
+
+{% block title %}Página no encontrada - EcoEnergy{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center py-5">
+        <div class="col-md-8 text-center">
+            <div class="card shadow-lg border-warning">
+                <div class="card-body p-5">
+                    <!-- Icono grande -->
+                    <div class="mb-4">
+                        <i class="bi bi-exclamation-triangle-fill text-warning" style="font-size: 6rem;"></i>
+                    </div>
+                    
+                    <!-- Título -->
+                    <h1 class="display-3 fw-bold text-warning mb-3">404</h1>
+                    <h2 class="mb-4">Página no encontrada</h2>
+                    
+                    <!-- Mensaje -->
+                    <p class="lead text-muted mb-4">
+                        Lo sentimos, la página que buscas no existe o no tienes permisos para acceder a ella.
+                    </p>
+                    
+                    <!-- Razones posibles -->
+                    <div class="alert alert-light text-start mb-4">
+                        <h6 class="alert-heading">
+                            <i class="bi bi-info-circle"></i> Posibles razones:
+                        </h6>
+                        <ul class="mb-0">
+                            <li>La URL está mal escrita o el recurso fue eliminado</li>
+                            <li>No tienes permisos para acceder a esta sección</li>
+                            <li>El contenido pertenece a otra organización</li>
+                            <li>La sesión expiró y necesitas iniciar sesión nuevamente</li>
+                        </ul>
+                    </div>
+                    
+                    <!-- Botones de acción -->
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-center">
+                        <a href="{% url 'dashboard' %}" class="btn btn-primary btn-lg">
+                            <i class="bi bi-house"></i>
+                            Ir al Dashboard
+                        </a>
+                        <button onclick="window.history.back()" class="btn btn-secondary btn-lg">
+                            <i class="bi bi-arrow-left"></i>
+                            Volver Atrás
+                        </button>
+                    </div>
+                    
+                    <!-- Ayuda adicional -->
+                    <div class="mt-5 pt-4 border-top">
+                        <h6 class="text-muted">¿Necesitas ayuda?</h6>
+                        <p class="small text-muted mb-0">
+                            Si crees que deberías tener acceso a este contenido, contacta al administrador del sistema.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Auto-desaparecer el mensaje después de mostrar la página
+    setTimeout(() => {
+        Swal.fire({
+            icon: 'warning',
+            title: 'Página no encontrada',
+            text: 'La página que buscas no existe o no tienes permisos para acceder.',
+            confirmButtonText: 'Entendido',
+            timer: 5000,
+            timerProgressBar: true
+        });
+    }, 500);
+</script>
+{% endblock %}

@@ -4,7 +4,21 @@ Formularios personalizados con validaciones para Django Admin
 from django import forms
 from django.core.exceptions import ValidationError
 from django.utils import timezone
-from .models import Device, Measurement, Alert, Organization
+
+# IMPORTAR TODOS LOS MODELOS NECESARIOS
+from .models import (
+    Device, 
+    Measurement, 
+    Alert, 
+    Organization, 
+    Zone, 
+    Category
+)
+
+
+# =========================================================================
+# FORMULARIO PARA DEVICE (Original + mejoras)
+# =========================================================================
 
 class DeviceAdminForm(forms.ModelForm):
     """
@@ -76,6 +90,11 @@ class DeviceAdminForm(forms.ModelForm):
         
         return cleaned_data
 
+
+# =========================================================================
+# FORMULARIO PARA MEASUREMENT (Original + mejoras)
+# =========================================================================
+
 class MeasurementAdminForm(forms.ModelForm):
     """
     Formulario personalizado para Measurement con validaciones
@@ -137,6 +156,11 @@ class MeasurementAdminForm(forms.ModelForm):
         
         return cleaned_data
 
+
+# =========================================================================
+# FORMULARIO PARA ALERT (Original)
+# =========================================================================
+
 class AlertAdminForm(forms.ModelForm):
     """
     Formulario personalizado para Alert con validaciones
@@ -161,6 +185,11 @@ class AlertAdminForm(forms.ModelForm):
                 )
         
         return cleaned_data
+
+
+# =========================================================================
+# FORMULARIO PARA ORGANIZATION (Original)
+# =========================================================================
 
 class OrganizationAdminForm(forms.ModelForm):
     """
@@ -230,8 +259,9 @@ class OrganizationAdminForm(forms.ModelForm):
         
         return phone
 
+
 # =========================================================================
-# INLINE FORMSETS CON VALIDACIONES
+# INLINE FORMSETS CON VALIDACIONES (Original)
 # =========================================================================
 
 from django.forms import BaseInlineFormSet
@@ -285,3 +315,255 @@ class DeviceInlineFormSet(BaseInlineFormSet):
             # Solo advertencia en consola, no bloquea el guardado
             import warnings
             warnings.warn('No hay dispositivos activos en esta zona.')
+
+
+# =========================================================================
+# FORMULARIOS PARA CRUD (NUEVOS)
+# =========================================================================
+
+class ZoneForm(forms.ModelForm):
+    """
+    Formulario para crear y editar Zonas con validaciones
+    """
+    class Meta:
+        model = Zone
+        fields = ['name', 'description', 'organization', 'floor_plan']
+        widgets = {
+            'name': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Ej: Oficina Principal'
+            }),
+            'description': forms.Textarea(attrs={
+                'class': 'form-control',
+                'placeholder': 'Descripción de la zona',
+                'rows': 3
+            }),
+            'organization': forms.Select(attrs={
+                'class': 'form-select'
+            }),
+            'floor_plan': forms.FileInput(attrs={
+                'class': 'form-control'
+            })
+        }
+        labels = {
+            'name': 'Nombre de la Zona',
+            'description': 'Descripción',
+            'organization': 'Organización',
+            'floor_plan': 'Plano de la Zona'
+        }
+    
+    def __init__(self, *args, **kwargs):
+        # Obtener el usuario para limitar organizaciones
+        user = kwargs.pop('user', None)
+        super().__init__(*args, **kwargs)
+        
+        # Si el usuario no es superusuario, limitar organizaciones
+        if user and not user.is_superuser:
+            try:
+                user_org = user.userprofile.organization
+                self.fields['organization'].queryset = Organization.objects.filter(id=user_org.id)
+                self.fields['organization'].initial = user_org.id
+                self.fields['organization'].widget.attrs['readonly'] = True
+            except:
+                self.fields['organization'].queryset = Organization.objects.none()
+    
+    def clean_name(self):
+        """
+        Validar que el nombre no esté duplicado en la misma organización
+        """
+        name = self.cleaned_data.get('name')
+        organization = self.cleaned_data.get('organization')
+        
+        if name and organization:
+            # Verificar duplicados
+            qs = Zone.objects.filter(
+                name__iexact=name,  # Case-insensitive
+                organization=organization,
+                state='ACTIVE'
+            )
+            
+            # Excluir el objeto actual si estamos editando
+            if self.instance.pk:
+                qs = qs.exclude(pk=self.instance.pk)
+            
+            if qs.exists():
+                raise ValidationError(
+                    f'Ya existe una zona con el nombre "{name}" '
+                    f'en la organización {organization.name}.'
+                )
+        
+        return name
+    
+    def clean_floor_plan(self):
+        """
+        Validar el archivo de plano
+        """
+        floor_plan = self.cleaned_data.get('floor_plan')
+        
+        if floor_plan:
+            # Validar tamaño (máximo 5MB)
+            if floor_plan.size > 5 * 1024 * 1024:
+                raise ValidationError(
+                    'El archivo es demasiado grande. Tamaño máximo: 5MB'
+                )
+            
+            # Validar extensión
+            valid_extensions = ['.jpg', '.jpeg', '.png', '.pdf']
+            ext = floor_plan.name.lower()[floor_plan.name.rfind('.'):]
+            
+            if ext not in valid_extensions:
+                raise ValidationError(
+                    f'Formato no válido. Extensiones permitidas: {", ".join(valid_extensions)}'
+                )
+        
+        return floor_plan
+
+
+class DeviceForm(forms.ModelForm):
+    """
+    Formulario para crear y editar Dispositivos con validaciones
+    """
+    class Meta:
+        model = Device
+        fields = ['name', 'description', 'max_consumption', 'category', 'zone', 'organization', 'imagen']
+        widgets = {
+            'name': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Ej: Aire Acondicionado Sala Principal'
+            }),
+            'description': forms.Textarea(attrs={
+                'class': 'form-control',
+                'placeholder': 'Descripción del dispositivo',
+                'rows': 3
+            }),
+            'max_consumption': forms.NumberInput(attrs={
+                'class': 'form-control',
+                'placeholder': '0.00',
+                'step': '0.01',
+                'min': '0'
+            }),
+            'category': forms.Select(attrs={
+                'class': 'form-select'
+            }),
+            'zone': forms.Select(attrs={
+                'class': 'form-select'
+            }),
+            'organization': forms.Select(attrs={
+                'class': 'form-select'
+            }),
+            'imagen': forms.FileInput(attrs={
+                'class': 'form-control'
+            })
+        }
+        labels = {
+            'name': 'Nombre del Dispositivo',
+            'description': 'Descripción',
+            'max_consumption': 'Consumo Máximo (kW)',
+            'category': 'Categoría',
+            'zone': 'Zona',
+            'organization': 'Organización',
+            'imagen': 'Imagen del Dispositivo'
+        }
+    
+    def __init__(self, *args, **kwargs):
+        user = kwargs.pop('user', None)
+        super().__init__(*args, **kwargs)
+        
+        # Si el usuario no es superusuario, limitar opciones
+        if user and not user.is_superuser:
+            try:
+                user_org = user.userprofile.organization
+                
+                # Limitar organizaciones
+                self.fields['organization'].queryset = Organization.objects.filter(id=user_org.id)
+                self.fields['organization'].initial = user_org.id
+                self.fields['organization'].widget.attrs['readonly'] = True
+                
+                # Limitar zonas a las de su organización
+                self.fields['zone'].queryset = Zone.objects.filter(organization=user_org, state='ACTIVE')
+                
+                # Limitar categorías a las de su organización
+                self.fields['category'].queryset = Category.objects.filter(organization=user_org, state='ACTIVE')
+            except:
+                self.fields['organization'].queryset = Organization.objects.none()
+                self.fields['zone'].queryset = Zone.objects.none()
+                self.fields['category'].queryset = Category.objects.none()
+    
+    def clean_name(self):
+        """Validar nombre único por organización"""
+        name = self.cleaned_data.get('name')
+        organization = self.cleaned_data.get('organization')
+        
+        if name and organization:
+            qs = Device.objects.filter(
+                name__iexact=name,
+                organization=organization,
+                state='ACTIVE'
+            )
+            
+            if self.instance.pk:
+                qs = qs.exclude(pk=self.instance.pk)
+            
+            if qs.exists():
+                raise ValidationError(
+                    f'Ya existe un dispositivo con el nombre "{name}" '
+                    f'en esta organización.'
+                )
+        
+        return name
+    
+    def clean_max_consumption(self):
+        """Validar consumo máximo"""
+        max_consumption = self.cleaned_data.get('max_consumption')
+        
+        if max_consumption and max_consumption <= 0:
+            raise ValidationError('El consumo máximo debe ser mayor a 0 kW.')
+        
+        if max_consumption and max_consumption > 1000:
+            raise ValidationError(
+                'El consumo máximo parece muy alto (>1000 kW). '
+                'Verifica que el valor sea correcto.'
+            )
+        
+        return max_consumption
+    
+    def clean_imagen(self):
+        """Validar imagen"""
+        imagen = self.cleaned_data.get('imagen')
+        
+        if imagen:
+            # Validar tamaño (máximo 5MB)
+            if imagen.size > 5 * 1024 * 1024:
+                raise ValidationError('El archivo es demasiado grande. Tamaño máximo: 5MB')
+            
+            # Validar extensión
+            valid_extensions = ['.jpg', '.jpeg', '.png', '.gif']
+            ext = imagen.name.lower()[imagen.name.rfind('.'):]
+            
+            if ext not in valid_extensions:
+                raise ValidationError(
+                    f'Formato no válido. Extensiones permitidas: {", ".join(valid_extensions)}'
+                )
+        
+        return imagen
+    
+    def clean(self):
+        """Validar que zona y categoría pertenezcan a la organización"""
+        cleaned_data = super().clean()
+        zone = cleaned_data.get('zone')
+        category = cleaned_data.get('category')
+        organization = cleaned_data.get('organization')
+        
+        if zone and organization:
+            if zone.organization != organization:
+                raise ValidationError(
+                    f'La zona "{zone.name}" no pertenece a la organización seleccionada.'
+                )
+        
+        if category and organization:
+            if category.organization != organization:
+                raise ValidationError(
+                    f'La categoría "{category.name}" no pertenece a la organización seleccionada.'
+                )
+        
+        return cleaned_data

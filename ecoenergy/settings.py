@@ -1,6 +1,6 @@
 from pathlib import Path
 import os
-
+from django.contrib.messages import constants as msg
 
 
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -137,3 +137,39 @@ LOGOUT_REDIRECT_URL = 'login'
 
 # Email backend para desarrollo (muestra en consola)
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+
+# Duración de la cookie de sesión (en segundos) - 2 horas
+SESSION_COOKIE_AGE = 60 * 60 * 2
+
+# ¿La sesión expira al cerrar el navegador?
+SESSION_EXPIRE_AT_BROWSER_CLOSE = False
+
+# ¿Actualizar expiración en cada request?
+SESSION_SAVE_EVERY_REQUEST = False
+
+# Seguridad de las cookies (activar en producción con HTTPS)
+SESSION_COOKIE_SECURE = False  # Cambiar a True en producción
+
+# Solo enviar cookie en el mismo sitio (protección CSRF)
+SESSION_COOKIE_SAMESITE = 'Lax'  # Opciones: 'Lax', 'Strict', 'None'
+
+# Backend de sesión (default: base de datos)
+SESSION_ENGINE = 'django.contrib.sessions.backends.db'
+
+MESSAGE_TAGS = {
+    msg.DEBUG: 'secondary',
+    msg.INFO: 'info',
+    msg.SUCCESS: 'success',
+    msg.WARNING: 'warning',
+    msg.ERROR: 'danger',  # Bootstrap usa 'danger' en lugar de 'error'
+}
+
+# Nivel mínimo de mensajes a mostrar
+MESSAGE_LEVEL = msg.DEBUG  # Mostrar todos los niveles
+
+# Storage de mensajes (usa sesión por defecto)
+MESSAGE_STORAGE = 'django.contrib.messages.storage.session.SessionStorage'
+
+# Esto hace que Django use tus templates personalizados para errores
+# Crear: templates/404.html y templates/403.html
+DEBUG = True  # En producción cambiar a False para ver las páginas de error

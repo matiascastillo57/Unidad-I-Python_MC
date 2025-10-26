@@ -1,16 +1,20 @@
+# usuarios/urls.py - VERSIÓN ACTUALIZADA
 from django.urls import path
 from django.contrib.auth import views as auth_views
 from . import views
+from monitoring import zone_views
 
 urlpatterns = [
-    # Login usando LoginView (CBV) - SIN formulario personalizado por ahora
+    # Login usando LoginView (CBV)
     path('login/', auth_views.LoginView.as_view(
         template_name='usuarios/login.html',
         redirect_authenticated_user=True,
     ), name='login'),
     
-    # Resto de las URLs...
-    path('logout/', auth_views.LogoutView.as_view(), name='logout'),
+    # Logout personalizado con limpieza de sesión
+    path('logout/', zone_views.custom_logout, name='logout'),
+    
+    # Registro
     path('register/', views.user_register, name='register'),
     
     # Password Change

@@ -1,0 +1,216 @@
+{% extends 'monitoring/base.html' %}
+
+{% block title %}{{ title }} - EcoEnergy{% endblock %}
+
+{% block content %}
+<div class="py-4">
+    <!-- Breadcrumb -->
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'dashboard' %}">Dashboard</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'zona_list' %}">Zonas</a></li>
+            <li class="breadcrumb-item active">{{ title }}</li>
+        </ol>
+    </nav>
+
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">
+                        <i class="bi bi-{% if zone %}pencil{% else %}plus-circle{% endif %}"></i>
+                        {{ title }}
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <form method="post" enctype="multipart/form-data" novalidate>
+                        {% csrf_token %}
+                        
+                        <!-- Mostrar errores generales del formulario -->
+                        {% if form.non_field_errors %}
+                        <div class="alert alert-danger">
+                            <i class="bi bi-exclamation-triangle"></i>
+                            {{ form.non_field_errors }}
+                        </div>
+                        {% endif %}
+                        
+                        <!-- Campo: Nombre -->
+                        <div class="mb-3">
+                            <label for="{{ form.name.id_for_label }}" class="form-label">
+                                {{ form.name.label }}
+                                <span class="text-danger">*</span>
+                            </label>
+                            {{ form.name }}
+                            {% if form.name.errors %}
+                                <div class="text-danger small mt-1">
+                                    {{ form.name.errors }}
+                                </div>
+                            {% endif %}
+                            <small class="form-text text-muted">
+                                Nombre descriptivo de la zona (ej: Oficina Principal, Sala de Servidores)
+                            </small>
+                        </div>
+                        
+                        <!-- Campo: Descripción -->
+                        <div class="mb-3">
+                            <label for="{{ form.description.id_for_label }}" class="form-label">
+                                {{ form.description.label }}
+                            </label>
+                            {{ form.description }}
+                            {% if form.description.errors %}
+                                <div class="text-danger small mt-1">
+                                    {{ form.description.errors }}
+                                </div>
+                            {% endif %}
+                            <small class="form-text text-muted">
+                                Descripción adicional sobre esta zona
+                            </small>
+                        </div>
+                        
+                        <!-- Campo: Organización -->
+                        <div class="mb-3">
+                            <label for="{{ form.organization.id_for_label }}" class="form-label">
+                                {{ form.organization.label }}
+                                <span class="text-danger">*</span>
+                            </label>
+                            {{ form.organization }}
+                            {% if form.organization.errors %}
+                                <div class="text-danger small mt-1">
+                                    {{ form.organization.errors }}
+                                </div>
+                            {% endif %}
+                            <small class="form-text text-muted">
+                                Organización a la que pertenece esta zona
+                            </small>
+                        </div>
+                        
+                        <!-- Campo: Plano -->
+                        <div class="mb-3">
+                            <label for="{{ form.floor_plan.id_for_label }}" class="form-label">
+                                {{ form.floor_plan.label }}
+                            </label>
+                            
+                            {% if zone and zone.floor_plan %}
+                            <div class="mb-2">
+                                <img src="{{ zone.floor_plan.url }}" 
+                                     alt="Plano actual" 
+                                     class="img-thumbnail"
+                                     style="max-width: 200px;">
+                                <p class="text-muted small mb-0">Plano actual</p>
+                            </div>
+                            {% endif %}
+                            
+                            {{ form.floor_plan }}
+                            {% if form.floor_plan.errors %}
+                                <div class="text-danger small mt-1">
+                                    {{ form.floor_plan.errors }}
+                                </div>
+                            {% endif %}
+                            <small class="form-text text-muted">
+                                Imagen del plano de la zona (JPG, PNG o PDF - Máximo 5MB)
+                            </small>
+                        </div>
+                        
+                        <hr>
+                        
+                        <!-- Botones de acción -->
+                        <div class="d-flex justify-content-between">
+                            <a href="{% if zone %}{% url 'zona_detail' zone.pk %}{% else %}{% url 'zona_list' %}{% endif %}" 
+                               class="btn btn-secondary">
+                                <i class="bi bi-x-circle"></i>
+                                Cancelar
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-{% if zone %}check-circle{% else %}plus-circle{% endif %}"></i>
+                                {{ button_text }}
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            
+            <!-- Card de ayuda -->
+            <div class="card mt-4 border-info">
+                <div class="card-body">
+                    <h6 class="card-title">
+                        <i class="bi bi-info-circle text-info"></i>
+                        Consejos
+                    </h6>
+                    <ul class="mb-0 small">
+                        <li>Usa nombres descriptivos y únicos para cada zona</li>
+                        <li>El plano ayuda a visualizar mejor la ubicación de los dispositivos</li>
+                        <li>Puedes agregar dispositivos a esta zona después de crearla</li>
+                        <li>Los campos marcados con <span class="text-danger">*</span> son obligatorios</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // ========================================================================
+    // VALIDACIÓN DEL FORMULARIO EN EL CLIENTE
+    // ========================================================================
+    document.addEventListener('DOMContentLoaded', function() {
+        const form = document.querySelector('form');
+        
+        if (form) {
+            form.addEventListener('submit', function(e) {
+                let isValid = true;
+                
+                // Validar nombre
+                const nameInput = document.querySelector('#id_name');
+                if (nameInput && nameInput.value.trim() === '') {
+                    isValid = false;
+                    showError(nameInput, 'El nombre de la zona es obligatorio');
+                }
+                
+                // Validar archivo si se seleccionó uno
+                const fileInput = document.querySelector('#id_floor_plan');
+                if (fileInput && fileInput.files.length > 0) {
+                    const file = fileInput.files[0];
+                    const maxSize = 5 * 1024 * 1024; // 5MB
+                    
+                    if (file.size > maxSize) {
+                        isValid = false;
+                        showError(fileInput, 'El archivo no debe superar los 5MB');
+                    }
+                }
+                
+                if (!isValid) {
+                    e.preventDefault();
+                }
+            });
+        }
+        
+        function showError(input, message) {
+            // Remover errores previos
+            const existingError = input.parentElement.querySelector('.client-error');
+            if (existingError) {
+                existingError.remove();
+            }
+            
+            // Agregar nuevo error
+            const errorDiv = document.createElement('div');
+            errorDiv.className = 'text-danger small mt-1 client-error';
+            errorDiv.textContent = message;
+            input.parentElement.appendChild(errorDiv);
+            
+            // Añadir clase de error al input
+            input.classList.add('is-invalid');
+            
+            // Remover clase después de que el usuario corrija
+            input.addEventListener('input', function() {
+                input.classList.remove('is-invalid');
+                const error = input.parentElement.querySelector('.client-error');
+                if (error) {
+                    error.remove();
+                }
+            }, { once: true });
+        }
+    });
+</script>
+{% endblock %}
