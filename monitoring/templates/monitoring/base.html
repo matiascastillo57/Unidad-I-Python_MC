@@ -76,6 +76,7 @@
                     </li>
                     {% endif %}
                     
+<<<<<<< HEAD
                     {% if perms.monitoring.view_category %}
                     <li class="nav-item">
                         <a class="nav-link {% if request.resolver_match.url_name == 'category_list' %}active{% endif %}" 
@@ -85,6 +86,8 @@
                     </li>
                     {% endif %}
                     
+=======
+>>>>>>> 52ebf391642254b8cb849da173bc6611b7d6dd52
                     {% if perms.monitoring.view_device %}
                     <li class="nav-item">
                         <a class="nav-link {% if request.resolver_match.url_name == 'device_list' %}active{% endif %}" 
@@ -253,9 +256,11 @@
     <!-- SweetAlert2 -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     
+
     <!-- SweetAlert para mensajes flash -->
     {% include 'monitoring/_sweetalert_success.html' %}
     
+
     {% block extra_js %}{% endblock %}
 </body>
 </html>
