@@ -317,13 +317,9 @@ class DeviceInlineFormSet(BaseInlineFormSet):
             warnings.warn('No hay dispositivos activos en esta zona.')
 
 
-
 # =========================================================================
 # FORMULARIOS PARA CRUD (NUEVOS)
 # =========================================================================
-
-# Agregar al archivo monitoring/forms.py existente
-
 
 class ZoneForm(forms.ModelForm):
     """
@@ -420,7 +416,6 @@ class ZoneForm(forms.ModelForm):
                     f'Formato no válido. Extensiones permitidas: {", ".join(valid_extensions)}'
                 )
         
-
         return floor_plan
 
 
@@ -572,6 +567,3 @@ class DeviceForm(forms.ModelForm):
                 )
         
         return cleaned_data
-
-        return floor_plan
-

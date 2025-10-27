@@ -7,15 +7,9 @@ from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse, HttpResponseBadRequest
 from django.contrib import messages
 from django.views.decorators.http import require_POST
-
 from django.db.models import Count, Q
 
-from .models import Zone, Device, models
-
-from django.db.models import Count
-
 from .models import Zone, Device
-
 from .forms import ZoneForm
 from ecoenergy.decorators import permission_required_with_message, ajax_permission_required
 

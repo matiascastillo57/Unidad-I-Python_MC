@@ -137,14 +137,12 @@ LOGOUT_REDIRECT_URL = 'login'
 
 # Email backend para desarrollo (muestra en consola)
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
-<<<<<<< HEAD
-=======
+
 # Agregar al final de ecoenergy/settings.py
 
 # =========================================================================
 # CONFIGURACIÓN DE SESIONES
 # =========================================================================
->>>>>>> 52ebf391642254b8cb849da173bc6611b7d6dd52
 
 # Duración de la cookie de sesión (en segundos) - 2 horas
 SESSION_COOKIE_AGE = 60 * 60 * 2
@@ -164,15 +162,12 @@ SESSION_COOKIE_SAMESITE = 'Lax'  # Opciones: 'Lax', 'Strict', 'None'
 # Backend de sesión (default: base de datos)
 SESSION_ENGINE = 'django.contrib.sessions.backends.db'
 
-<<<<<<< HEAD
-=======
 # =========================================================================
 # CONFIGURACIÓN DE MENSAJES (MESSAGE FRAMEWORK)
 # =========================================================================
 
 from django.contrib.messages import constants as msg
 
->>>>>>> 52ebf391642254b8cb849da173bc6611b7d6dd52
 MESSAGE_TAGS = {
     msg.DEBUG: 'secondary',
     msg.INFO: 'info',
@@ -185,12 +180,12 @@ MESSAGE_TAGS = {
 MESSAGE_LEVEL = msg.DEBUG  # Mostrar todos los niveles
 
 # Storage de mensajes (usa sesión por defecto)
-<<<<<<< HEAD
 MESSAGE_STORAGE = 'django.contrib.messages.storage.session.SessionStorage'
+
+# =========================================================================
+# PÁGINAS DE ERROR PERSONALIZADAS
+# =========================================================================
 
 # Esto hace que Django use tus templates personalizados para errores
 # Crear: templates/404.html y templates/403.html
 DEBUG = True  # En producción cambiar a False para ver las páginas de error
-=======
-MESSAGE_STORAGE = 'django.contrib.messages.storage.session.SessionStorage'
->>>>>>> 52ebf391642254b8cb849da173bc6611b7d6dd52
