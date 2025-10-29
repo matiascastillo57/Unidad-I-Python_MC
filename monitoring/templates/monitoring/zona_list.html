@@ -33,17 +33,69 @@
         </ol>
     </nav>
 
+    <!-- BUSCADOR Y FILTROS -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <form method="get" class="row g-3">
+                <div class="col-md-4">
+                    <label for="q" class="form-label">
+                        <i class="bi bi-search"></i> Buscar
+                    </label>
+                    <input type="text" 
+                           name="q" 
+                           id="q" 
+                           class="form-control" 
+                           placeholder="Nombre o descripción..." 
+                           value="{{ q }}">
+                </div>
+                
+                <div class="col-md-3">
+                    <label for="sort" class="form-label">
+                        <i class="bi bi-sort-down"></i> Ordenar por
+                    </label>
+                    <select name="sort" id="sort" class="form-select">
+                        <option value="name" {% if sort == 'name' %}selected{% endif %}>Nombre (A-Z)</option>
+                        <option value="-name" {% if sort == '-name' %}selected{% endif %}>Nombre (Z-A)</option>
+                        <option value="created_at" {% if sort == 'created_at' %}selected{% endif %}>Más antiguas</option>
+                        <option value="-created_at" {% if sort == '-created_at' %}selected{% endif %}>Más recientes</option>
+                    </select>
+                </div>
+                
+                <div class="col-md-2">
+                    <label for="per_page" class="form-label">
+                        <i class="bi bi-list-ol"></i> Mostrar
+                    </label>
+                    <select name="per_page" id="per_page" class="form-select">
+                        <option value="5" {% if per_page == 5 %}selected{% endif %}>5</option>
+                        <option value="10" {% if per_page == 10 %}selected{% endif %}>10</option>
+                        <option value="25" {% if per_page == 25 %}selected{% endif %}>25</option>
+                        <option value="50" {% if per_page == 50 %}selected{% endif %}>50</option>
+                    </select>
+                </div>
+                
+                <div class="col-md-3 d-flex align-items-end gap-2">
+                    <button type="submit" class="btn btn-primary flex-grow-1">
+                        <i class="bi bi-funnel"></i> Filtrar
+                    </button>
+                    <a href="{% url 'zona_list' %}" class="btn btn-secondary">
+                        <i class="bi bi-arrow-counterclockwise"></i> Limpiar
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <!-- Tabla de Zonas -->
     <div class="card shadow-sm">
         <div class="card-header bg-primary text-white">
             <h5 class="mb-0">
                 <i class="bi bi-list"></i>
                 Lista de Zonas
-                <span class="badge bg-light text-dark ms-2">{{ zones|length }}</span>
+                <span class="badge bg-light text-dark ms-2">{{ page_obj.paginator.count }}</span>
             </h5>
         </div>
         <div class="card-body">
-            {% if zones %}
+            {% if page_obj.object_list %}
                 <div class="table-responsive">
                     <table class="table table-hover table-striped">
                         <thead class="table-dark">
@@ -57,9 +109,9 @@
                             </tr>
                         </thead>
                         <tbody>
-                            {% for zone in zones %}
+                            {% for zone in page_obj.object_list %}
                             <tr>
-                                <td>{{ forloop.counter }}</td>
+                                <td>{{ forloop.counter|add:page_obj.start_index|add:"-1" }}</td>
                                 <td>
                                     <strong>{{ zone.name }}</strong>
                                     {% if zone.floor_plan %}
@@ -86,14 +138,12 @@
                                 </td>
                                 <td class="text-center">
                                     <div class="btn-group btn-group-sm" role="group">
-                                        <!-- Botón Ver (siempre visible) -->
                                         <a href="{% url 'zona_detail' zone.pk %}" 
                                            class="btn btn-outline-primary"
                                            title="Ver detalle">
                                             <i class="bi bi-eye"></i>
                                         </a>
                                         
-                                        <!-- Botón Editar (solo si tiene permiso) -->
                                         {% if can_change %}
                                         <a href="{% url 'zona_update' zone.pk %}" 
                                            class="btn btn-outline-warning"
@@ -102,7 +152,6 @@
                                         </a>
                                         {% endif %}
                                         
-                                        <!-- Botón Eliminar (solo si tiene permiso) -->
                                         {% if can_delete %}
                                         <button type="button" 
                                                 class="btn btn-outline-danger btn-delete-zone"
@@ -119,19 +168,94 @@
                         </tbody>
                     </table>
                 </div>
+                
+                <!-- PAGINADOR -->
+                {% if page_obj.has_other_pages %}
+                <nav aria-label="Paginación" class="mt-4">
+                    <div class="row align-items-center">
+                        <div class="col-md-6">
+                            <p class="text-muted mb-0">
+                                Mostrando {{ page_obj.start_index }} - {{ page_obj.end_index }} de {{ page_obj.paginator.count }} zonas
+                            </p>
+                        </div>
+                        <div class="col-md-6">
+                            <ul class="pagination justify-content-end mb-0">
+                                {% if page_obj.has_previous %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page=1&{{ querystring }}">
+                                            <i class="bi bi-chevron-double-left"></i>
+                                        </a>
+                                    </li>
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}&{{ querystring }}">
+                                            <i class="bi bi-chevron-left"></i>
+                                        </a>
+                                    </li>
+                                {% else %}
+                                    <li class="page-item disabled">
+                                        <span class="page-link"><i class="bi bi-chevron-double-left"></i></span>
+                                    </li>
+                                    <li class="page-item disabled">
+                                        <span class="page-link"><i class="bi bi-chevron-left"></i></span>
+                                    </li>
+                                {% endif %}
+                                
+                                {% for num in page_obj.paginator.page_range %}
+                                    {% if page_obj.number == num %}
+                                        <li class="page-item active">
+                                            <span class="page-link">{{ num }}</span>
+                                        </li>
+                                    {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                                        <li class="page-item">
+                                            <a class="page-link" href="?page={{ num }}&{{ querystring }}">{{ num }}</a>
+                                        </li>
+                                    {% endif %}
+                                {% endfor %}
+                                
+                                {% if page_obj.has_next %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page={{ page_obj.next_page_number }}&{{ querystring }}">
+                                            <i class="bi bi-chevron-right"></i>
+                                        </a>
+                                    </li>
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}&{{ querystring }}">
+                                            <i class="bi bi-chevron-double-right"></i>
+                                        </a>
+                                    </li>
+                                {% else %}
+                                    <li class="page-item disabled">
+                                        <span class="page-link"><i class="bi bi-chevron-right"></i></span>
+                                    </li>
+                                    <li class="page-item disabled">
+                                        <span class="page-link"><i class="bi bi-chevron-double-right"></i></span>
+                                    </li>
+                                {% endif %}
+                            </ul>
+                        </div>
+                    </div>
+                </nav>
+                {% endif %}
+                
             {% else %}
                 <!-- Estado vacío -->
                 <div class="text-center py-5">
                     <i class="bi bi-geo-alt" style="font-size: 4rem; color: #ccc;"></i>
                     <h4 class="text-muted mt-3">No hay zonas registradas</h4>
                     <p class="text-muted">
-                        {% if can_add %}
+                        {% if q %}
+                            No se encontraron resultados para "{{ q }}"
+                            <br>
+                            <a href="{% url 'zona_list' %}" class="btn btn-secondary mt-2">
+                                Limpiar búsqueda
+                            </a>
+                        {% elif can_add %}
                             Comienza creando tu primera zona usando el botón "Nueva Zona".
                         {% else %}
                             Aún no hay zonas disponibles. Contacta al administrador.
                         {% endif %}
                     </p>
-                    {% if can_add %}
+                    {% if can_add and not q %}
                     <a href="{% url 'zona_create' %}" class="btn btn-primary mt-3">
                         <i class="bi bi-plus-circle"></i>
                         Crear Primera Zona
@@ -142,7 +266,7 @@
         </div>
     </div>
 
-    <!-- Card informativa de permisos (solo si no tiene todos) -->
+    <!-- Card informativa de permisos -->
     {% if not can_add or not can_change or not can_delete %}
     <div class="card mt-4 border-warning">
         <div class="card-body">
@@ -170,7 +294,6 @@
     // SWEETALERT2: ELIMINAR ZONA CON CONFIRMACIÓN
     // ========================================================================
     document.addEventListener('DOMContentLoaded', function() {
-        // Seleccionar todos los botones de eliminar
         const deleteButtons = document.querySelectorAll('.btn-delete-zone');
         
         deleteButtons.forEach(button => {
@@ -178,7 +301,6 @@
                 const zoneId = this.dataset.zoneId;
                 const zoneName = this.dataset.zoneName;
                 
-                // SweetAlert2: Confirmación
                 Swal.fire({
                     title: '¿Eliminar zona?',
                     html: `¿Estás seguro de eliminar la zona <strong>"${zoneName}"</strong>?<br><small class="text-muted">Esta acción no se puede deshacer.</small>`,
@@ -191,20 +313,16 @@
                     focusCancel: true
                 }).then((result) => {
                     if (result.isConfirmed) {
-                        // Usuario confirmó: hacer petición AJAX
                         eliminarZona(zoneId, zoneName);
                     }
                 });
             });
         });
         
-        // Función para eliminar zona vía AJAX
         function eliminarZona(zoneId, zoneName) {
-            // Obtener el token CSRF
             const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]')?.value || 
                               getCookie('csrftoken');
             
-            // Mostrar loading
             Swal.fire({
                 title: 'Eliminando...',
                 html: 'Por favor espera',
@@ -214,7 +332,6 @@
                 }
             });
             
-            // Petición AJAX
             fetch(`/zonas/${zoneId}/eliminar/`, {
                 method: 'POST',
                 headers: {
@@ -226,18 +343,15 @@
             .then(response => response.json())
             .then(data => {
                 if (data.ok) {
-                    // Éxito
                     Swal.fire({
                         title: '¡Eliminada!',
                         text: data.message,
                         icon: 'success',
                         confirmButtonText: 'Aceptar'
                     }).then(() => {
-                        // Recargar página para actualizar la lista
                         window.location.reload();
                     });
                 } else {
-                    // Error del servidor (ej: tiene dispositivos)
                     Swal.fire({
                         title: 'No se puede eliminar',
                         text: data.message,
@@ -247,7 +361,6 @@
                 }
             })
             .catch(error => {
-                // Error de red o del servidor
                 console.error('Error:', error);
                 Swal.fire({
                     title: 'Error',
@@ -258,7 +371,6 @@
             });
         }
         
-        // Helper para obtener cookie CSRF
         function getCookie(name) {
             let cookieValue = null;
             if (document.cookie && document.cookie !== '') {

@@ -8,6 +8,7 @@ from django.http import JsonResponse, HttpResponseBadRequest
 from django.contrib import messages
 from django.views.decorators.http import require_POST
 from django.db.models import Count, Q
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 
 from .models import Zone, Device
 from .forms import ZoneForm
@@ -48,7 +49,7 @@ def zona_list(request):
     
     # Anotar con conteo de dispositivos
     zones = zones.annotate(
-        device_count=Count('device', filter=models.Q(device__state='ACTIVE'))
+        device_count=Count('device', filter=Q(device__state='ACTIVE'))
     ).select_related('organization').order_by('name')
     
     context = {
