@@ -62,20 +62,79 @@ def get_user_organization(user):
 @login_required
 @permission_required_with_message('monitoring.view_category')
 def category_list(request):
+    """Lista de categorías con buscador, paginador y ordenamiento"""
     organization = get_user_organization(request.user)
     
+    # Base queryset
     if not organization:
         categories = Category.objects.filter(state='ACTIVE')
     else:
         categories = Category.objects.filter(organization=organization, state='ACTIVE')
     
+    # =====================================================================
+    # BUSCADOR
+    # =====================================================================
+    q = request.GET.get('q', '')
+    if q:
+        categories = categories.filter(
+            Q(name__icontains=q) | 
+            Q(description__icontains=q)
+        )
+    
+    # =====================================================================
+    # ORDENAMIENTO
+    # =====================================================================
+    sort = request.GET.get('sort', 'name')
+    valid_sorts = ['name', '-name', 'created_at', '-created_at']
+    if sort in valid_sorts:
+        categories = categories.order_by(sort)
+    else:
+        categories = categories.order_by('name')
+    
+    # Anotar conteo de dispositivos
     categories = categories.annotate(
         device_count=Count('device', filter=Q(device__state='ACTIVE'))
-    ).select_related('organization').order_by('name')
+    ).select_related('organization')
+    
+    # =====================================================================
+    # PAGINADOR con tamaño personalizable en sesión
+    # =====================================================================
+    per_page = request.GET.get('per_page', request.session.get('categories_per_page', '10'))
+    try:
+        per_page = int(per_page)
+        if per_page not in [5, 10, 20, 25, 50]:
+            per_page = 10
+    except:
+        per_page = 10
+    
+    # Guardar preferencia en sesión
+    request.session['categories_per_page'] = per_page
+    
+    from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+    
+    paginator = Paginator(categories, per_page)
+    page = request.GET.get('page', 1)
+    
+    try:
+        page_obj = paginator.page(page)
+    except PageNotAnInteger:
+        page_obj = paginator.page(1)
+    except EmptyPage:
+        page_obj = paginator.page(paginator.num_pages)
+    
+    # Construir querystring para mantener filtros
+    querystring = request.GET.copy()
+    if 'page' in querystring:
+        querystring.pop('page')
     
     context = {
-        'categories': categories,
+        'page_obj': page_obj,
+        'categories': page_obj.object_list,
         'organization': organization,
+        'q': q,
+        'sort': sort,
+        'per_page': per_page,
+        'querystring': querystring.urlencode(),
         'can_add': request.user.has_perm('monitoring.add_category'),
         'can_change': request.user.has_perm('monitoring.change_category'),
         'can_delete': request.user.has_perm('monitoring.delete_category'),
@@ -169,3 +228,4 @@ def category_delete_ajax(request, pk):
         'ok': True,
         'message': f'Categoría "{nombre}" eliminada correctamente.'
     })
+    

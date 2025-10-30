@@ -9,7 +9,7 @@ from django.contrib import messages
 from django.views.decorators.http import require_POST
 from django.db.models import Q
 from django.utils import timezone
-from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+from django.core.paginator import Paginator
 from django import forms
 
 from .models import Measurement, Device, Organization, Alert
@@ -84,14 +84,6 @@ class MeasurementForm(forms.ModelForm):
             if device.organization != organization:
                 raise forms.ValidationError('El dispositivo no pertenece a la organización seleccionada.')
         
-        # Advertencia si excede el límite (no error, solo info)
-        if device and consumption:
-            if consumption > device.max_consumption:
-                messages.warning(
-                    self.initial.get('request'),
-                    f'⚠️ El consumo ({consumption} kW) excede el límite del dispositivo ({device.max_consumption} kW). Se generará una alerta.'
-                )
-        
         return cleaned_data
 
 
@@ -107,9 +99,10 @@ def get_user_organization(user):
 @login_required
 @permission_required_with_message('monitoring.view_measurement')
 def measurement_list(request):
-    """Lista de mediciones con filtros"""
+    """Lista de mediciones con filtros, búsqueda y paginación"""
     organization = get_user_organization(request.user)
     
+    # Base queryset
     if not organization:
         measurements = Measurement.objects.filter(state='ACTIVE')
         devices = Device.objects.filter(state='ACTIVE')
@@ -117,9 +110,9 @@ def measurement_list(request):
         measurements = Measurement.objects.filter(organization=organization, state='ACTIVE')
         devices = Device.objects.filter(organization=organization, state='ACTIVE')
     
-    # Filtros
+    # 1. FILTROS
     device_filter = request.GET.get('device')
-    search = request.GET.get('search')
+    search = request.GET.get('q', '')  # Cambiado de 'search' a 'q' para consistencia
     date_from = request.GET.get('date_from')
     date_to = request.GET.get('date_to')
     
@@ -138,16 +131,49 @@ def measurement_list(request):
     if date_to:
         measurements = measurements.filter(measurement_date__lte=date_to)
     
-    measurements = measurements.select_related('device', 'device__zone', 'device__category').order_by('-measurement_date')[:100]
+    # 2. ORDENAMIENTO
+    sort = request.GET.get('sort', '-measurement_date')
+    valid_sorts = ['measurement_date', '-measurement_date', 'consumption_value', '-consumption_value', 
+                   'device__name', '-device__name']
+    
+    if sort in valid_sorts:
+        measurements = measurements.order_by(sort)
+    else:
+        measurements = measurements.order_by('-measurement_date')
+    
+    # Optimizar queries
+    measurements = measurements.select_related('device', 'device__zone', 'device__category')
+    
+    # 3. PAGINACIÓN
+    per_page = request.GET.get('per_page', request.session.get('per_page', 10))
+    
+    try:
+        per_page = int(per_page)
+        if per_page in [5, 10, 25, 50]:
+            request.session['per_page'] = per_page
+    except (ValueError, TypeError):
+        per_page = 10
+    
+    paginator = Paginator(measurements, per_page)
+    page_number = request.GET.get('page', 1)
+    page_obj = paginator.get_page(page_number)
+    
+    # 4. QUERYSTRING para mantener parámetros
+    querystring = request.GET.copy()
+    if 'page' in querystring:
+        querystring.pop('page')
     
     context = {
-        'measurements': measurements,
+        'page_obj': page_obj,
         'devices': devices,
         'organization': organization,
         'device_filter': device_filter,
-        'search': search,
+        'q': search,
+        'sort': sort,
+        'per_page': per_page,
         'date_from': date_from,
         'date_to': date_to,
+        'querystring': querystring.urlencode(),
         'can_add': request.user.has_perm('monitoring.add_measurement'),
         'can_change': request.user.has_perm('monitoring.change_measurement'),
         'can_delete': request.user.has_perm('monitoring.delete_measurement'),
@@ -162,7 +188,6 @@ def measurement_create(request):
     """Crear nueva medición"""
     if request.method == 'POST':
         form = MeasurementForm(request.POST, user=request.user)
-        form.initial['request'] = request  # Para mensajes en clean()
         
         if form.is_valid():
             measurement = form.save(commit=False)
@@ -185,6 +210,7 @@ def measurement_create(request):
                     message=f'Consumo excedido: {measurement.consumption_value} kW (límite: {measurement.device.max_consumption} kW)',
                     organization=measurement.organization
                 )
+                messages.warning(request, f'⚠️ Se generó una alerta: consumo excede el límite')
             
             messages.success(request, f'✅ Medición registrada: {measurement.consumption_value} kW')
             return redirect('measurement_list')
