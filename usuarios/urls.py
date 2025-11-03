@@ -3,6 +3,7 @@ from django.urls import path
 from django.contrib.auth import views as auth_views
 from . import views
 from monitoring import zone_views
+from monitoring import export_views
 
 urlpatterns = [
     # Login usando LoginView (CBV)
@@ -47,4 +48,8 @@ urlpatterns = [
     path('password/reset/complete/', auth_views.PasswordResetCompleteView.as_view(
         template_name='usuarios/password_reset_complete.html'
     ), name='password_reset_complete'),
+    path('devices/export/', export_views.export_devices_excel, name='export_devices_excel'),
+    path('zones/export/', export_views.export_zones_excel, name='export_zones_excel'),
+    path('categories/export/', export_views.export_categories_excel, name='export_categories_excel'),
+    path('measurements/export/', export_views.export_measurements_excel, name='export_measurements_excel'),
 ]
