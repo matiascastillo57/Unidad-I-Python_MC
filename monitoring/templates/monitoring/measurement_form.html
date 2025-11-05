@@ -1,20 +1,9 @@
 {% extends 'monitoring/base.html' %}
-{% load static %}
 
 {% block title %}{{ title }} - EcoEnergy{% endblock %}
 
 {% block content %}
 <div class="py-4">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1>
-            <i class="bi bi-speedometer2"></i> {{ title }}
-        </h1>
-        <a href="{% url 'measurement_list' %}" class="btn btn-secondary">
-            <i class="bi bi-arrow-left"></i> Volver al Listado
-        </a>
-    </div>
-
-    <!-- Breadcrumb -->
     <nav aria-label="breadcrumb" class="mb-4">
         <ol class="breadcrumb">
             <li class="breadcrumb-item"><a href="{% url 'dashboard' %}">Dashboard</a></li>
@@ -27,215 +16,112 @@
         <div class="col-md-8">
             <div class="card shadow-sm">
                 <div class="card-header bg-primary text-white">
-                    <h5 class="mb-0">
-                        <i class="bi bi-pencil-square"></i> Formulario de Medición
-                    </h5>
+                    <h4 class="mb-0">
+                        <i class="bi bi-{% if measurement %}pencil{% else %}plus-circle{% endif %}"></i>
+                        {{ title }}
+                    </h4>
                 </div>
                 <div class="card-body">
-                    <!-- Mensaje de información -->
-                    <div class="alert alert-info mb-4">
-                        <i class="bi bi-info-circle me-2"></i>
-                        <strong>Importante:</strong> Asegúrate de ingresar el valor de consumo correcto. 
-                        Si excede el límite del dispositivo, se generará una alerta automáticamente.
-                    </div>
-
                     <form method="post" novalidate>
                         {% csrf_token %}
                         
-                        <!-- Errores generales del formulario -->
                         {% if form.non_field_errors %}
-                        <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                            <i class="bi bi-exclamation-triangle me-2"></i>
+                        <div class="alert alert-danger">
                             {{ form.non_field_errors }}
-                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                         </div>
                         {% endif %}
-
+                        
+                        <div class="mb-3">
+                            <label for="{{ form.device.id_for_label }}" class="form-label">
+                                {{ form.device.label }} <span class="text-danger">*</span>
+                            </label>
+                            {{ form.device }}
+                            {% if form.device.errors %}
+                                <div class="text-danger small">{{ form.device.errors }}</div>
+                            {% endif %}
+                        </div>
+                        
                         <div class="row">
-                            <!-- Dispositivo -->
-                            <div class="col-md-6 mb-3">
-                                <label for="{{ form.device.id_for_label }}" class="form-label">
-                                    <i class="bi bi-cpu me-1"></i> {{ form.device.label }}
-                                    <span class="text-danger">*</span>
-                                </label>
-                                {{ form.device }}
-                                {% if form.device.errors %}
-                                    <div class="invalid-feedback d-block">
-                                        {{ form.device.errors.0 }}
-                                    </div>
-                                {% endif %}
-                                <small class="form-text text-muted">
-                                    Selecciona el dispositivo que está siendo medido
-                                </small>
-                            </div>
-
-                            <!-- Organización -->
-                            <div class="col-md-6 mb-3">
-                                <label for="{{ form.organization.id_for_label }}" class="form-label">
-                                    <i class="bi bi-building me-1"></i> {{ form.organization.label }}
-                                    <span class="text-danger">*</span>
-                                </label>
-                                {{ form.organization }}
-                                {% if form.organization.errors %}
-                                    <div class="invalid-feedback d-block">
-                                        {{ form.organization.errors.0 }}
-                                    </div>
-                                {% endif %}
-                            </div>
-
-                            <!-- Valor de Consumo -->
-                            <div class="col-md-6 mb-3">
-                                <label for="{{ form.consumption_value.id_for_label }}" class="form-label">
-                                    <i class="bi bi-lightning-charge me-1"></i> {{ form.consumption_value.label }}
-                                    <span class="text-danger">*</span>
-                                </label>
-                                <div class="input-group">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="{{ form.consumption_value.id_for_label }}" class="form-label">
+                                        {{ form.consumption_value.label }} <span class="text-danger">*</span>
+                                    </label>
                                     {{ form.consumption_value }}
-                                    <span class="input-group-text">kW</span>
+                                    {% if form.consumption_value.errors %}
+                                        <div class="text-danger small">{{ form.consumption_value.errors }}</div>
+                                    {% endif %}
+                                    <small class="text-muted">Valor en kilowatts (kW)</small>
                                 </div>
-                                {% if form.consumption_value.errors %}
-                                    <div class="invalid-feedback d-block">
-                                        {{ form.consumption_value.errors.0 }}
-                                    </div>
-                                {% endif %}
-                                <small class="form-text text-muted">
-                                    Ingresa el valor en kilovatios (kW)
-                                </small>
                             </div>
-
-                            <!-- Fecha y Hora -->
-                            <div class="col-md-6 mb-3">
-                                <label for="{{ form.measurement_date.id_for_label }}" class="form-label">
-                                    <i class="bi bi-calendar-event me-1"></i> {{ form.measurement_date.label }}
-                                    <span class="text-danger">*</span>
-                                </label>
-                                {{ form.measurement_date }}
-                                {% if form.measurement_date.errors %}
-                                    <div class="invalid-feedback d-block">
-                                        {{ form.measurement_date.errors.0 }}
-                                    </div>
-                                {% endif %}
-                                <small class="form-text text-muted">
-                                    Fecha y hora de la medición
-                                </small>
-                            </div>
-
-                            <!-- Notas -->
-                            <div class="col-12 mb-3">
-                                <label for="{{ form.notes.id_for_label }}" class="form-label">
-                                    <i class="bi bi-journal-text me-1"></i> {{ form.notes.label }}
-                                </label>
-                                {{ form.notes }}
-                                {% if form.notes.errors %}
-                                    <div class="invalid-feedback d-block">
-                                        {{ form.notes.errors.0 }}
-                                    </div>
-                                {% endif %}
-                                <small class="form-text text-muted">
-                                    Agrega notas o comentarios adicionales (opcional)
-                                </small>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="{{ form.measurement_date.id_for_label }}" class="form-label">
+                                        {{ form.measurement_date.label }} <span class="text-danger">*</span>
+                                    </label>
+                                    <input type="datetime-local" 
+                                           name="measurement_date" 
+                                           id="id_measurement_date"
+                                           class="form-control"
+                                           min="2000-01-01T00:00"
+                                           max="2030-12-31T23:59"
+                                           value="{{ form.measurement_date.value|date:'Y-m-d\TH:i' }}"
+                                           required>
+                                    {% if form.measurement_date.errors %}
+                                        <div class="text-danger small">{{ form.measurement_date.errors }}</div>
+                                    {% endif %}
+                                    <small class="text-muted">Rango permitido: 2000-2030</small>
+                                </div>
                             </div>
                         </div>
-
-                        <!-- Información del dispositivo seleccionado -->
-                        <div id="device-info" class="alert alert-secondary d-none mb-3">
-                            <h6 class="alert-heading">
-                                <i class="bi bi-info-circle"></i> Información del Dispositivo
-                            </h6>
-                            <div id="device-details"></div>
+                        
+                        <div class="mb-3">
+                            <label for="{{ form.organization.id_for_label }}" class="form-label">
+                                {{ form.organization.label }} <span class="text-danger">*</span>
+                            </label>
+                            {{ form.organization }}
+                            {% if form.organization.errors %}
+                                <div class="text-danger small">{{ form.organization.errors }}</div>
+                            {% endif %}
                         </div>
-
-                        <!-- Botones -->
-                        <div class="d-flex justify-content-between mt-4">
+                        
+                        <div class="mb-3">
+                            <label for="{{ form.notes.id_for_label }}" class="form-label">
+                                {{ form.notes.label }}
+                            </label>
+                            {{ form.notes }}
+                            {% if form.notes.errors %}
+                                <div class="text-danger small">{{ form.notes.errors }}</div>
+                            {% endif %}
+                            <small class="text-muted">Observaciones o comentarios adicionales</small>
+                        </div>
+                        
+                        <hr>
+                        
+                        <div class="d-flex justify-content-between">
                             <a href="{% url 'measurement_list' %}" class="btn btn-secondary">
-                                <i class="bi bi-x-circle me-1"></i> Cancelar
+                                <i class="bi bi-x-circle"></i> Cancelar
                             </a>
                             <button type="submit" class="btn btn-primary">
-                                <i class="bi bi-check-circle me-1"></i> {{ button_text }}
+                                <i class="bi bi-check-circle"></i> {{ button_text }}
                             </button>
                         </div>
                     </form>
                 </div>
             </div>
-
-            <!-- Card de ayuda -->
-            <div class="card mt-4 border-info">
+            
+            <!-- Ayuda -->
+            <div class="card mt-3 border-info">
                 <div class="card-body">
-                    <h6 class="card-title">
-                        <i class="bi bi-question-circle text-info"></i> Ayuda
-                    </h6>
+                    <h6 class="card-title"><i class="bi bi-info-circle text-info"></i> Información</h6>
                     <ul class="mb-0 small">
-                        <li>El valor de consumo debe ser mayor a 0 kW</li>
+                        <li>El consumo debe ser un valor positivo</li>
+                        <li>La fecha no puede ser futura</li>
                         <li>Si el consumo excede el límite del dispositivo, se generará una alerta automáticamente</li>
-                        <li>La fecha de medición no puede ser futura</li>
-                        <li>Los campos marcados con <span class="text-danger">*</span> son obligatorios</li>
                     </ul>
                 </div>
             </div>
         </div>
     </div>
 </div>
-{% endblock %}
-
-{% block extra_js %}
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    const deviceSelect = document.getElementById('{{ form.device.id_for_label }}');
-    const deviceInfo = document.getElementById('device-info');
-    const deviceDetails = document.getElementById('device-details');
-    
-    // Cargar información del dispositivo cuando se selecciona
-    if (deviceSelect) {
-        deviceSelect.addEventListener('change', function() {
-            const deviceId = this.value;
-            
-            if (deviceId) {
-                // Aquí podrías hacer un AJAX call para obtener más info del dispositivo
-                // Por ahora mostramos el nombre
-                const selectedOption = this.options[this.selectedIndex];
-                const deviceName = selectedOption.text;
-                
-                deviceDetails.innerHTML = `
-                    <p class="mb-0">
-                        <strong>Dispositivo seleccionado:</strong> ${deviceName}
-                    </p>
-                `;
-                deviceInfo.classList.remove('d-none');
-            } else {
-                deviceInfo.classList.add('d-none');
-            }
-        });
-    }
-    
-    // Auto-completar fecha actual si está vacío
-    const dateInput = document.getElementById('{{ form.measurement_date.id_for_label }}');
-    if (dateInput && !dateInput.value) {
-        const now = new Date();
-        const year = now.getFullYear();
-        const month = String(now.getMonth() + 1).padStart(2, '0');
-        const day = String(now.getDate()).padStart(2, '0');
-        const hours = String(now.getHours()).padStart(2, '0');
-        const minutes = String(now.getMinutes()).padStart(2, '0');
-        
-        dateInput.value = `${year}-${month}-${day}T${hours}:${minutes}`;
-    }
-    
-    // Validación de consumo en tiempo real
-    const consumptionInput = document.getElementById('{{ form.consumption_value.id_for_label }}');
-    if (consumptionInput) {
-        consumptionInput.addEventListener('input', function() {
-            const value = parseFloat(this.value);
-            
-            if (value <= 0) {
-                this.classList.add('is-invalid');
-            } else if (value > 10000) {
-                this.classList.add('is-invalid');
-            } else {
-                this.classList.remove('is-invalid');
-                this.classList.add('is-valid');
-            }
-        });
-    }
-});
-</script>
 {% endblock %}

@@ -69,7 +69,7 @@
                     <!-- MENU CONDICIONADO POR PERMISOS -->
                     {% if perms.monitoring.view_zone %}
                     <li class="nav-item">
-                        <a class="nav-link {% if request.resolver_match.url_name == 'zona_list' %}active{% endif %}" 
+                        <a class="nav-link {% if 'zona' in request.resolver_match.url_name %}active{% endif %}" 
                            href="{% url 'zona_list' %}">
                             <i class="bi bi-geo-alt"></i> Zonas
                         </a>
@@ -78,7 +78,7 @@
                     
                     {% if perms.monitoring.view_category %}
                     <li class="nav-item">
-                        <a class="nav-link {% if request.resolver_match.url_name == 'category_list' %}active{% endif %}" 
+                        <a class="nav-link {% if 'category' in request.resolver_match.url_name %}active{% endif %}" 
                            href="{% url 'category_list' %}">
                             <i class="bi bi-tags"></i> Categorías
                         </a>
@@ -87,7 +87,7 @@
                     
                     {% if perms.monitoring.view_device %}
                     <li class="nav-item">
-                        <a class="nav-link {% if request.resolver_match.url_name == 'device_list' %}active{% endif %}" 
+                        <a class="nav-link {% if 'device' in request.resolver_match.url_name %}active{% endif %}" 
                            href="{% url 'device_list' %}">
                             <i class="bi bi-cpu"></i> Dispositivos
                         </a>
@@ -96,7 +96,7 @@
                     
                     {% if perms.monitoring.view_measurement %}
                     <li class="nav-item">
-                        <a class="nav-link {% if request.resolver_match.url_name == 'measurement_list' %}active{% endif %}" 
+                        <a class="nav-link {% if 'measurement' in request.resolver_match.url_name %}active{% endif %}" 
                            href="{% url 'measurement_list' %}">
                             <i class="bi bi-graph-up"></i> Mediciones
                         </a>

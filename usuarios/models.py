@@ -1,7 +1,9 @@
+# usuarios/models.py
 from django.db import models
 from django.contrib.auth.models import User, Group
 from django.conf import settings
 from monitoring.models import Organization
+
 
 class UserProfile(models.Model):
     """
@@ -15,7 +17,7 @@ class UserProfile(models.Model):
     )
     organization = models.ForeignKey(
         Organization,
-        on_delete=models.PROTECT,  # No permitir eliminar org si tiene usuarios
+        on_delete=models.PROTECT,
         help_text="Empresa a la que pertenece el usuario"
     )
     
@@ -40,6 +42,12 @@ class UserProfile(models.Model):
     direccion = models.TextField(
         blank=True,
         help_text="Dirección del usuario"
+    )
+    avatar = models.ImageField(
+        upload_to='avatares/',
+        null=True,
+        blank=True,
+        help_text="Foto de perfil del usuario"
     )
     created_at = models.DateTimeField(auto_now_add=True)
     
@@ -171,9 +179,13 @@ class RoleModulePermission(models.Model):
     
     def __str__(self):
         perms = []
-        if self.can_view: perms.append('Ver')
-        if self.can_add: perms.append('Agregar')
-        if self.can_change: perms.append('Cambiar')
-        if self.can_delete: perms.append('Eliminar')
+        if self.can_view:
+            perms.append('Ver')
+        if self.can_add:
+            perms.append('Agregar')
+        if self.can_change:
+            perms.append('Cambiar')
+        if self.can_delete:
+            perms.append('Eliminar')
         perms_str = ', '.join(perms) if perms else 'Sin permisos'
         return f"{self.role} → {self.module} ({perms_str})"

@@ -5,186 +5,236 @@
 {% block content %}
 <div class="py-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1>
-            <i class="bi bi-graph-up"></i>
-            Historial de Mediciones
-        </h1>
-        <nav aria-label="breadcrumb">
-            <ol class="breadcrumb mb-0">
-                <li class="breadcrumb-item"><a href="{% url 'dashboard' %}">Dashboard</a></li>
-                <li class="breadcrumb-item active">Mediciones</li>
-            </ol>
-        </nav>
+        <h1><i class="bi bi-graph-up"></i> Gestión de Mediciones</h1>
+        {% if can_add %}
+        <a href="{% url 'measurement_create' %}" class="btn btn-primary">
+            <i class="bi bi-plus-circle"></i> Nueva Medición
+        </a>
+        {% endif %}
     </div>
 
-    {% if error %}
-        <div class="alert alert-danger">
-            <i class="bi bi-exclamation-triangle"></i>
-            {{ error }}
-        </div>
-    {% else %}
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'dashboard' %}">Dashboard</a></li>
+            <li class="breadcrumb-item active">Mediciones</li>
+        </ol>
+    </nav>
 
-    <!-- Lista de Mediciones -->
-    <div class="card">
-        <div class="card-header">
+    <!-- Filtros -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <form method="get" class="row g-3">
+                <div class="col-md-3">
+                    <label class="form-label">Buscar</label>
+                    <input type="text" name="search" class="form-control" placeholder="Dispositivo o notas" value="{{ search }}">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Dispositivo</label>
+                    <select name="device" class="form-select">
+                        <option value="">Todos</option>
+                        {% for dev in devices %}
+                            <option value="{{ dev.id }}" {% if dev.id|stringformat:"s" == device_filter %}selected{% endif %}>
+                                {{ dev.name }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">Desde</label>
+                    <input type="date" 
+                           name="date_from" 
+                           class="form-control" 
+                           min="2000-01-01"
+                           max="2030-12-31"
+                           value="{{ date_from }}">
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">Hasta</label>
+                    <input type="date" 
+                           name="date_to" 
+                           class="form-control"
+                           min="2000-01-01"
+                           max="2030-12-31"
+                           value="{{ date_to }}">
+                </div>
+                <div class="col-md-2 d-flex align-items-end gap-2">
+                    <button type="submit" class="btn btn-primary flex-grow-1">
+                        <i class="bi bi-funnel"></i> Filtrar
+                    </button>
+                    <a href="{% url 'measurement_list' %}" class="btn btn-secondary">
+                        <i class="bi bi-arrow-counterclockwise"></i>
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Tabla -->
+    <div class="card shadow-sm">
+        <div class="card-header bg-primary text-white">
             <h5 class="mb-0">
-                <i class="bi bi-list"></i>
-                Últimas 50 Mediciones
+                <i class="bi bi-list"></i> Lista de Mediciones
+                <span class="badge bg-light text-dark ms-2">{{ measurements|length }}</span>
             </h5>
         </div>
         <div class="card-body">
             {% if measurements %}
                 <div class="table-responsive">
-                    <table class="table table-striped table-hover">
+                    <table class="table table-hover table-striped">
                         <thead class="table-dark">
                             <tr>
-                                <th>Fecha/Hora</th>
-                                <th>Dispositivo</th>
-                                <th>Categoría</th>
-                                <th>Zona</th>
-                                <th>Consumo (kW)</th>
-                                <th>Estado</th>
-                                <th>Acciones</th>
+                                <th width="5%">#</th>
+                                <th width="18%">Fecha/Hora</th>
+                                <th width="25%">Dispositivo</th>
+                                <th width="12%">Consumo</th>
+                                <th width="10%">Estado</th>
+                                <th width="20%">Notas</th>
+                                <th width="10%">Acciones</th>
                             </tr>
                         </thead>
                         <tbody>
-                            {% for measurement in measurements %}
+                            {% for m in measurements %}
                             <tr>
+                                <td>{{ forloop.counter }}</td>
                                 <td>
-                                    <strong>{{ measurement.measurement_date|date:"d/m/Y" }}</strong>
-                                    <br>
-                                    <small class="text-muted">{{ measurement.measurement_date|date:"H:i:s" }}</small>
+                                    <strong>{{ m.measurement_date|date:"d/m/Y" }}</strong><br>
+                                    <small class="text-muted">{{ m.measurement_date|date:"H:i:s" }}</small>
                                 </td>
                                 <td>
-                                    <a href="{% url 'device_detail' measurement.device.id %}" 
-                                       class="text-decoration-none">
-                                        <strong>{{ measurement.device.name }}</strong>
-                                    </a>
-                                    {% if measurement.device.description %}
-                                        <br>
-                                        <small class="text-muted">{{ measurement.device.description|truncatechars:30 }}</small>
-                                    {% endif %}
+                                    <strong>{{ m.device.name }}</strong><br>
+                                    <small class="text-muted">
+                                        <i class="bi bi-geo-alt"></i> {{ m.device.zone.name }}
+                                    </small>
                                 </td>
                                 <td>
-                                    <span class="badge bg-info">{{ measurement.device.category.name }}</span>
-                                </td>
-                                <td>
-                                    <i class="bi bi-geo-alt"></i>
-                                    {{ measurement.device.zone.name }}
-                                </td>
-                                <td>
-                                    {% if measurement.consumption_value > measurement.device.max_consumption %}
+                                    {% if m.consumption_value > m.device.max_consumption %}
                                         <span class="badge bg-danger fs-6">
-                                            <i class="bi bi-exclamation-triangle"></i>
-                                            {{ measurement.consumption_value }} kW
-                                        </span>
-                                        <br>
-                                        <small class="text-danger">
-                                            Excede límite ({{ measurement.device.max_consumption }} kW)
-                                        </small>
-                                    {% elif measurement.consumption_value > measurement.device.max_consumption|floatformat:"0"|add:"-5" %}
-                                        <span class="badge bg-warning text-dark fs-6">
-                                            <i class="bi bi-exclamation-circle"></i>
-                                            {{ measurement.consumption_value }} kW
-                                        </span>
-                                        <br>
-                                        <small class="text-warning">
-                                            Consumo alto
-                                        </small>
+                                            {{ m.consumption_value }} kW ⚠️
+                                        </span><br>
+                                        <small class="text-danger">Excede límite</small>
                                     {% else %}
                                         <span class="badge bg-success fs-6">
-                                            <i class="bi bi-check-circle"></i>
-                                            {{ measurement.consumption_value }} kW
-                                        </span>
-                                        <br>
-                                        <small class="text-success">
-                                            Normal
-                                        </small>
+                                            {{ m.consumption_value }} kW
+                                        </span><br>
+                                        <small class="text-success">Normal</small>
                                     {% endif %}
                                 </td>
                                 <td>
-                                    {% if measurement.state == 'ACTIVE' %}
+                                    {% if m.state == 'ACTIVE' %}
                                         <span class="badge bg-success">Válida</span>
                                     {% else %}
                                         <span class="badge bg-secondary">Inactiva</span>
                                     {% endif %}
                                 </td>
+                                <td>{{ m.notes|default:"—"|truncatechars:30 }}</td>
                                 <td>
-                                    <a href="{% url 'device_detail' measurement.device.id %}" 
-                                       class="btn btn-primary btn-sm">
-                                        <i class="bi bi-eye"></i>
-                                        Ver Dispositivo
-                                    </a>
+                                    <div class="btn-group btn-group-sm">
+                                        {% if can_change %}
+                                        <a href="{% url 'measurement_update' m.pk %}" 
+                                           class="btn btn-outline-warning" title="Editar">
+                                            <i class="bi bi-pencil"></i>
+                                        </a>
+                                        {% endif %}
+                                        {% if can_delete %}
+                                        <button type="button" 
+                                                class="btn btn-outline-danger btn-delete-measurement"
+                                                data-measurement-id="{{ m.pk }}"
+                                                title="Eliminar">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                        {% endif %}
+                                    </div>
                                 </td>
                             </tr>
                             {% endfor %}
                         </tbody>
                     </table>
                 </div>
-
-                <!-- Información adicional -->
-                <div class="mt-3">
-                    <div class="row">
-                        <div class="col-md-6">
-                            <small class="text-muted">
-                                <i class="bi bi-info-circle"></i>
-                                Mostrando las últimas 50 mediciones ordenadas por fecha descendente.
-                            </small>
-                        </div>
-                        <div class="col-md-6 text-end">
-                            <small class="text-muted">
-                                Total de mediciones mostradas: {{ measurements|length }}
-                            </small>
-                        </div>
-                    </div>
-                </div>
-
             {% else %}
-                <!-- Estado vacío -->
                 <div class="text-center py-5">
                     <i class="bi bi-graph-up" style="font-size: 4rem; color: #ccc;"></i>
-                    <h4 class="text-muted mt-3">No hay mediciones disponibles</h4>
-                    <p class="text-muted">
-                        Las mediciones aparecerán aquí cuando se registren en el sistema.
-                        <br>
-                        Puedes agregar mediciones desde el panel de administración.
-                    </p>
-                    <a href="{% url 'dashboard' %}" class="btn btn-primary mt-3">
-                        <i class="bi bi-house"></i>
-                        Volver al Dashboard
-                    </a>
+                    <h4 class="text-muted mt-3">No hay mediciones</h4>
+                    {% if can_add %}
+                        <a href="{% url 'measurement_create' %}" class="btn btn-primary mt-3">
+                            <i class="bi bi-plus-circle"></i> Registrar Primera Medición
+                        </a>
+                    {% endif %}
                 </div>
             {% endif %}
         </div>
     </div>
-
-    <!-- Leyenda de colores -->
-    {% if measurements %}
-    <div class="card mt-4">
-        <div class="card-body">
-            <h6 class="card-title">Leyenda de Estados:</h6>
-            <div class="row">
-                <div class="col-md-3">
-                    <span class="badge bg-success me-2">Normal</span>
-                    <small>Consumo dentro del rango permitido</small>
-                </div>
-                <div class="col-md-3">
-                    <span class="badge bg-warning text-dark me-2">Alto</span>
-                    <small>Consumo elevado, cerca del límite</small>
-                </div>
-                <div class="col-md-3">
-                    <span class="badge bg-danger me-2">Excede</span>
-                    <small>Supera el consumo máximo permitido</small>
-                </div>
-                <div class="col-md-3">
-                    <span class="badge bg-secondary me-2">Inactiva</span>
-                    <small>Medición no válida o eliminada</small>
-                </div>
-            </div>
-        </div>
-    </div>
-    {% endif %}
-
-    {% endif %}
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const deleteButtons = document.querySelectorAll('.btn-delete-measurement');
+    
+    deleteButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            const measurementId = this.dataset.measurementId;
+            
+            Swal.fire({
+                title: '¿Eliminar medición?',
+                text: 'Esta acción no se puede deshacer.',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#dc3545',
+                confirmButtonText: 'Sí, eliminar',
+                cancelButtonText: 'Cancelar'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    eliminarMedicion(measurementId);
+                }
+            });
+        });
+    });
+    
+    function eliminarMedicion(measurementId) {
+        const csrfToken = getCookie('csrftoken');
+        
+        Swal.fire({
+            title: 'Eliminando...',
+            allowOutsideClick: false,
+            didOpen: () => { Swal.showLoading(); }
+        });
+        
+        fetch(`/measurements/${measurementId}/eliminar/`, {
+            method: 'POST',
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'X-CSRFToken': csrfToken
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.ok) {
+                Swal.fire('¡Eliminada!', data.message, 'success')
+                    .then(() => window.location.reload());
+            } else {
+                Swal.fire('Error', data.message, 'error');
+            }
+        })
+        .catch(() => {
+            Swal.fire('Error', 'Ocurrió un error', 'error');
+        });
+    }
+    
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+});
+</script>
 {% endblock %}

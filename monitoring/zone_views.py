@@ -107,13 +107,18 @@ def zona_create(request):
         if form.is_valid():
             zone = form.save(commit=False)
             
-            # Si no es superusuario, asignar su organización
+            # CRÍTICO: Si no es superusuario, asignar su organización automáticamente
             if not request.user.is_superuser:
                 try:
                     zone.organization = request.user.userprofile.organization
-                except:
+                except AttributeError:
                     messages.error(request, 'Error: Usuario sin organización asignada')
                     return redirect('zona_list')
+            
+            # Si es superusuario pero no seleccionó organización
+            if not zone.organization:
+                messages.error(request, 'Error: Debes seleccionar una organización')
+                return redirect('zona_list')
             
             zone.save()
             
