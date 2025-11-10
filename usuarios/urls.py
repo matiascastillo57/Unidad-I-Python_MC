@@ -3,11 +3,9 @@ from django.urls import path
 from django.contrib.auth import views as auth_views
 from . import views
 from monitoring import zone_views
-<<<<<<< HEAD
 from usuarios import profile_views
-=======
 from monitoring import export_views
->>>>>>> ff1242244faefc3c9a65023a6e41b49b1ca4453e
+
 
 urlpatterns = [
     # Login usando LoginView (CBV)
@@ -52,15 +50,16 @@ urlpatterns = [
     path('password/reset/complete/', auth_views.PasswordResetCompleteView.as_view(
         template_name='usuarios/password_reset_complete.html'
     ), name='password_reset_complete'),
-<<<<<<< HEAD
     
     path('profile/', profile_views.profile_view, name='profile_view'),
     path('profile/edit/', profile_views.profile_edit, name='profile_edit'),
     path('profile/password/', profile_views.password_change_secure, name='password_change_secure'),
-=======
-    path('devices/export/', export_views.export_devices_excel, name='export_devices_excel'),
-    path('zones/export/', export_views.export_zones_excel, name='export_zones_excel'),
-    path('categories/export/', export_views.export_categories_excel, name='export_categories_excel'),
-    path('measurements/export/', export_views.export_measurements_excel, name='export_measurements_excel'),
->>>>>>> ff1242244faefc3c9a65023a6e41b49b1ca4453e
+
+     # ========================================================================
+    # EXPORTACIÓN A EXCEL ⬅️ AGREGAR ESTAS RUTAS
+    # ========================================================================
+    path('export/zones/', export_views.export_zones_excel, name='export_zones_excel'),
+    path('export/devices/', export_views.export_devices_excel, name='export_devices_excel'),
+    path('export/categories/', export_views.export_categories_excel, name='export_categories_excel'),
+    path('export/measurements/', export_views.export_measurements_excel, name='export_measurements_excel'),
 ]

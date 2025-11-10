@@ -14,6 +14,17 @@
                 <small>Has visitado esta página {{ visitas_zonas }} veces en esta sesión</small>
             </p>
         </div>
+        <div class="btn-group">
+            <a href="{% url 'export_zones_excel' %}" class="btn btn-success">
+                <i class="bi bi-file-earmark-excel"></i> Exportar Excel
+            </a>
+            {% if can_add %}
+            <a href="{% url 'zona_create' %}" class="btn btn-primary">
+                <i class="bi bi-plus-circle"></i> Nueva Zona
+            </a>
+            {% endif %}
+        </div>
+    </div>
         
         <div>
             {% if can_add %}

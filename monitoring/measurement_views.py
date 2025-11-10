@@ -192,6 +192,9 @@ def measurement_create(request):
         if form.is_valid():
             measurement = form.save(commit=False)
             
+            # ⬇️ AGREGAR ESTO
+            measurement.state = 'ACTIVE'  # ⬅️ IMPORTANTE
+            
             if not request.user.is_superuser:
                 try:
                     measurement.organization = request.user.userprofile.organization
@@ -208,7 +211,8 @@ def measurement_create(request):
                     measurement=measurement,
                     severity='HIGH',
                     message=f'Consumo excedido: {measurement.consumption_value} kW (límite: {measurement.device.max_consumption} kW)',
-                    organization=measurement.organization
+                    organization=measurement.organization,
+                    state='ACTIVE'  # ⬅️ TAMBIÉN AQUÍ
                 )
                 messages.warning(request, f'⚠️ Se generó una alerta: consumo excede el límite')
             
