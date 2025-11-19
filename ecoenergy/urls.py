@@ -14,14 +14,26 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
-# ecoenergy/urls.py (modificar este archivo)
+# ecoenergy/urls.py
 from django.contrib import admin
 from django.urls import path, include
-from django.shortcuts import redirect
-
+from django.conf import settings
+from django.conf.urls.static import static
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('', include('monitoring.urls')),  # URLs del sistema de monitoreo
-    path('auth/', include('usuarios.urls')),  # URLs de autenticación
+    
+    # URLs de la aplicación web
+    path('', include('monitoring.urls')),
+    path('auth/', include('usuarios.urls')),
+    
+    # URLs de la API REST
+    path('api/', include('monitoring.api_urls')),
+    
+    # Navegador de API de DRF (útil para desarrollo)
+    path('api-auth/', include('rest_framework.urls')),
 ]
+
+# Servir archivos media en desarrollo
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

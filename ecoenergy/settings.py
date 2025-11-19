@@ -21,12 +21,16 @@ ALLOWED_HOSTS = []
 # Application definition
 
 INSTALLED_APPS = [
-    'django.contrib.admin',
+     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    
+    # Third party apps
+    'rest_framework',
+    
     # Nuestras aplicaciones
     'monitoring',
     'usuarios',
@@ -189,3 +193,17 @@ MESSAGE_STORAGE = 'django.contrib.messages.storage.session.SessionStorage'
 # Esto hace que Django use tus templates personalizados para errores
 # Crear: templates/404.html y templates/403.html
 DEBUG = True  # En producción cambiar a False para ver las páginas de error
+
+
+# Django Rest Framework
+REST_FRAMEWORK = {
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
+    'PAGE_SIZE': 10,
+    'DEFAULT_RENDERER_CLASSES': [
+        'rest_framework.renderers.JSONRenderer',
+        'rest_framework.renderers.BrowsableAPIRenderer',
+    ],
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.IsAuthenticatedOrReadOnly',
+    ],
+}
