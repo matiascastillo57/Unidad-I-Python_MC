@@ -1,44 +1,55 @@
-# requirements.txt
-# Dependencias completas para EcoEnergy
-
-# Django Core
+asgiref==3.9.1
+attrs==25.4.0
+certifi==2025.11.12
+cffi==2.0.0
+charset-normalizer==3.4.4
+colorama==0.4.6
+crispy-bootstrap5==2025.6
+cryptography==41.0.7
 Django==4.2.7
-djangorestframework==3.14.0
-
-# Autenticación y Permisos
-django-filter==23.4
 django-cors-headers==4.3.1
-
-# Base de datos
-psycopg2-binary==2.9.9
-mysqlclient==2.2.7
-
-# Procesamiento de Imágenes
-Pillow==10.1.0
-
-# Exportación de Datos
-openpyxl==3.1.2
-pandas==2.1.3
-
-# Servidor de Aplicación
-gunicorn==21.2.0
-
-# Variables de Entorno
-python-decouple==3.8
-python-dotenv==1.1.1
-
-# Utilidades
-whitenoise==6.6.0
-requests==2.31.0
-
-# Desarrollo (opcional)
+django-crispy-forms==2.4
 django-debug-toolbar==4.2.0
-faker==20.1.0
+django-filter==23.4
+djangorestframework==3.14.0
+drf-spectacular==0.26.5
+et_xmlfile==2.0.0
+exceptiongroup==1.3.0
+Faker==20.1.0
+gunicorn==21.2.0
+idna==3.11
+importlib_metadata==8.7.0
+inflection==0.5.1
+iniconfig==2.1.0
+jsonschema==4.25.1
+jsonschema-specifications==2025.9.1
+Markdown==3.9
+mysqlclient==2.2.7
+numpy==1.26.4
+openpyxl==3.1.2
+packaging==25.0
+pandas==2.1.3
+Pillow==10.1.0
+pluggy==1.6.0
+psycopg2-binary==2.9.9
+pycparser==2.23
+PyMySQL==1.1.2
 pytest==7.4.3
 pytest-django==4.7.0
-
-# Seguridad
-cryptography==41.0.7
-
-# API Documentation (opcional)
-drf-spectacular==0.26.5
+python-dateutil==2.9.0.post0
+python-decouple==3.8
+python-dotenv==1.1.1
+pytz==2025.2
+PyYAML==6.0.3
+referencing==0.36.2
+requests==2.31.0
+rpds-py==0.27.1
+six==1.17.0
+sqlparse==0.5.3
+tomli==2.3.0
+typing_extensions==4.14.1
+tzdata==2025.2
+uritemplate==4.2.0
+urllib3==2.5.0
+whitenoise==6.6.0
+zipp==3.23.0

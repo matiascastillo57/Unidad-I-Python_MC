@@ -50,7 +50,6 @@ urlpatterns = [
     path('password/reset/complete/', auth_views.PasswordResetCompleteView.as_view(
         template_name='usuarios/password_reset_complete.html'
     ), name='password_reset_complete'),
-
     
     path('profile/', profile_views.profile_view, name='profile_view'),
     path('profile/edit/', profile_views.profile_edit, name='profile_edit'),
