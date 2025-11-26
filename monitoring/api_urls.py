@@ -4,7 +4,6 @@ URLs para la API REST de EcoEnergy
 """
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
-
 from .api_views import (
     OrganizationViewSet,
     CategoryViewSet,
@@ -28,18 +27,20 @@ router.register(r'alerts', AlertViewSet, basename='alert')
 
 # URLs de la API
 urlpatterns = [
-    # Health check y info
+    # Health check y info (sin autenticación)
     path('health/', HealthCheckAPIView.as_view(), name='api-health'),
     path('info/', ProjectInfoAPIView.as_view(), name='api-info'),
     
-    # Dashboard stats
+    # Dashboard stats (requiere autenticación)
     path('dashboard/stats/', DashboardStatsAPIView.as_view(), name='api-dashboard-stats'),
     
     # ViewSets (genera automáticamente las rutas CRUD)
     path('', include(router.urls)),
 ]
 
-# Rutas generadas automáticamente por el router:
+# ============================================================================
+# RUTAS GENERADAS AUTOMÁTICAMENTE POR EL ROUTER:
+# ============================================================================
 # 
 # Organizations:
 #   GET    /api/organizations/           - Listar todas
@@ -95,8 +96,10 @@ urlpatterns = [
 #   DELETE /api/alerts/{id}/             - Eliminar
 #   POST   /api/alerts/{id}/resolve/     - Marcar como resuelta
 #
-# Parámetros de query disponibles:
-#
+# ============================================================================
+# PARÁMETROS DE QUERY DISPONIBLES:
+# ============================================================================
+# 
 # Devices:
 #   ?category=1           - Filtrar por categoría
 #   ?zone=2               - Filtrar por zona
