@@ -21,7 +21,7 @@ ALLOWED_HOSTS = []
 # Application definition
 
 INSTALLED_APPS = [
-     'django.contrib.admin',
+    'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
@@ -31,12 +31,17 @@ INSTALLED_APPS = [
     # Third party apps
     'rest_framework',
     'rest_framework.authtoken',
+    'rest_framework_simplejwt',  # AGREGADO para JWT
+    'corsheaders',  # AGREGADO para CORS
+    
     # Nuestras aplicaciones
     'monitoring',
     'usuarios',
+    'smartconnect',  # NUEVA APP PARA LA EVALUACIÓN
 ]
 
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',  # AGREGADO - debe estar primero
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -112,6 +117,7 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/4.2/howto/static-files/
 
 STATIC_URL = 'static/'
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')  # ACTUALIZADO para producción
 
 # NUEVO: Configuración para archivos media (imágenes subidas por usuarios)
 MEDIA_URL = '/media/'
@@ -122,27 +128,15 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-# Configuración de autenticación
-LOGIN_URL = '/auth/login/'
-LOGIN_REDIRECT_URL = '/'
-LOGOUT_REDIRECT_URL = '/auth/login/'
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = 'sandbox.smtp.mailtrap.io'
-EMAIL_PORT = 2525
-EMAIL_USE_TLS = True
-EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER')  # Obtener de variable de entorno
-EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD')  # Obtener de variable de entorno
-DEFAULT_FROM_EMAIL = 'noreply@ecoenergy.com'
-
-# Configuración de autenticación
+# =========================================================================
+# CONFIGURACIÓN DE AUTENTICACIÓN (TEMPLATES HTML)
+# =========================================================================
 LOGIN_URL = 'login'
 LOGIN_REDIRECT_URL = 'dashboard'
 LOGOUT_REDIRECT_URL = 'login'
 
 # Email backend para desarrollo (muestra en consola)
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
-
-# Agregar al final de ecoenergy/settings.py
 
 # =========================================================================
 # CONFIGURACIÓN DE SESIONES
@@ -170,8 +164,6 @@ SESSION_ENGINE = 'django.contrib.sessions.backends.db'
 # CONFIGURACIÓN DE MENSAJES (MESSAGE FRAMEWORK)
 # =========================================================================
 
-from django.contrib.messages import constants as msg
-
 MESSAGE_TAGS = {
     msg.DEBUG: 'secondary',
     msg.INFO: 'info',
@@ -187,22 +179,30 @@ MESSAGE_LEVEL = msg.DEBUG  # Mostrar todos los niveles
 MESSAGE_STORAGE = 'django.contrib.messages.storage.session.SessionStorage'
 
 # =========================================================================
-# PÁGINAS DE ERROR PERSONALIZADAS
+# CONFIGURACIÓN DE CORS (para API)
 # =========================================================================
 
-# Esto hace que Django use tus templates personalizados para errores
-# Crear: templates/404.html y templates/403.html
-DEBUG = True  # En producción cambiar a False para ver las páginas de error
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
+    "http://localhost:8000",
+    "http://127.0.0.1:8000",
+]
 
+# Solo para desarrollo - cambiar en producción
+CORS_ALLOW_ALL_ORIGINS = True  
 
-# Django Rest Framework
+# =========================================================================
+# DJANGO REST FRAMEWORK - CONFIGURACIÓN MEJORADA
+# =========================================================================
+
 REST_FRAMEWORK = {
-       'DEFAULT_AUTHENTICATION_CLASSES': [
-        'rest_framework_simplejwt.authentication.JWTAuthentication',
-        'rest_framework.authentication.SessionAuthentication',  # Para el navegador
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework_simplejwt.authentication.JWTAuthentication',  # JWT para API
+        'rest_framework.authentication.SessionAuthentication',  # Para navegador
     ],
     'DEFAULT_PERMISSION_CLASSES': [
-        'rest_framework.permissions.IsAuthenticatedOrReadOnly',
+        'rest_framework.permissions.IsAuthenticated',  # CAMBIADO: ahora requiere auth por defecto
     ],
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
     'PAGE_SIZE': 20,
@@ -210,16 +210,68 @@ REST_FRAMEWORK = {
         'rest_framework.renderers.JSONRenderer',
         'rest_framework.renderers.BrowsableAPIRenderer',
     ],
-    'DEFAULT_PERMISSION_CLASSES': [
-        'rest_framework.permissions.IsAuthenticatedOrReadOnly',
-    ],
+    'EXCEPTION_HANDLER': 'smartconnect.utils.custom_exception_handler',  # AGREGADO: handler personalizado
 }
+
+# =========================================================================
+# SIMPLE JWT - CONFIGURACIÓN COMPLETA
+# =========================================================================
 
 from datetime import timedelta
 
 SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME': timedelta(hours=1),
-    'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
+    'ACCESS_TOKEN_LIFETIME': timedelta(hours=5),  # Token válido por 5 horas
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=1),  # Refresh token válido por 1 día
     'ROTATE_REFRESH_TOKENS': False,
     'BLACKLIST_AFTER_ROTATION': True,
+    'UPDATE_LAST_LOGIN': False,
+
+    'ALGORITHM': 'HS256',
+    'SIGNING_KEY': SECRET_KEY,
+    'VERIFYING_KEY': None,
+    'AUDIENCE': None,
+    'ISSUER': None,
+
+    'AUTH_HEADER_TYPES': ('Bearer',),
+    'AUTH_HEADER_NAME': 'HTTP_AUTHORIZATION',
+    'USER_ID_FIELD': 'id',
+    'USER_ID_CLAIM': 'user_id',
+
+    'AUTH_TOKEN_CLASSES': ('rest_framework_simplejwt.tokens.AccessToken',),
+    'TOKEN_TYPE_CLAIM': 'token_type',
+
+    'JTI_CLAIM': 'jti',
 }
+
+# =========================================================================
+# CONFIGURACIÓN PARA PRODUCCIÓN (AWS)
+# =========================================================================
+
+# Descomentar y configurar para producción:
+"""
+from dotenv import load_dotenv
+load_dotenv()
+
+DEBUG = os.getenv('DEBUG', 'False') == 'True'
+SECRET_KEY = os.getenv('SECRET_KEY')
+ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', '').split(',')
+
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': os.getenv('DB_NAME'),
+        'USER': os.getenv('DB_USER'),
+        'PASSWORD': os.getenv('DB_PASSWORD'),
+        'HOST': os.getenv('DB_HOST', 'localhost'),
+        'PORT': os.getenv('DB_PORT', '3306'),
+        'OPTIONS': {
+            'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
+            'charset': 'utf8mb4',
+        }
+    }
+}
+
+# Seguridad para producción
+SESSION_COOKIE_SECURE = True
+CSRF_COOKIE_SECURE = True
+"""
